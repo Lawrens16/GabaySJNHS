@@ -1,0 +1,95 @@
+name: CI/CD Pipeline - GabaySJNHS
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================
+  # 1. Validation & Test Suite
+  # ==========================================
+  test:
+    name: Lint, Typecheck & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: TypeScript Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run Security & Unit Test Suite
+        run: npm test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://vrbowqaouarvthnftfzg.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'ci-dummy-anon-key' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'ci-dummy-service-key' }}
+          OFFICER_JWT_SECRET: ${{ secrets.OFFICER_JWT_SECRET || 'ci_test_secret_for_jwt_auth_32_characters' }}
+          OCR_SPACE_API_KEY: ${{ secrets.OCR_SPACE_API_KEY || 'K88723657388957' }}
+
+  # ==========================================
+  # 2. Next.js Production Build Validation
+  # ==========================================
+  build:
+    name: Next.js Production Build Check
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Next.js Production Bundle
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://vrbowqaouarvthnftfzg.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'ci-dummy-anon-key' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'ci-dummy-service-key' }}
+          OFFICER_JWT_SECRET: ${{ secrets.OFFICER_JWT_SECRET || 'ci_test_secret_for_jwt_auth_32_characters' }}
+          OCR_SPACE_API_KEY: ${{ secrets.OCR_SPACE_API_KEY || 'K88723657388957' }}
+
+  # ==========================================
+  # 3. Optional Vercel Production Deployment
+  # ==========================================
+  deploy:
+    name: Vercel Deploy Gate
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Output Deployment Ready Status
+        run: |
+          echo "✅ All CI checks (Lint, Typescript, Test Suite, Production Build) passed successfully!"
+          echo "🚀 Ready for Vercel deployment."
