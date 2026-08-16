@@ -47,45 +47,54 @@ CREATE OR REPLACE FUNCTION public.is_enrollment_officer() RETURNS BOOLEAN AS $$
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 -- 3. PROFILES TABLE POLICIES
+DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
 CREATE POLICY "Users can read own profile"
 ON public.profiles FOR SELECT
 USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Approved staff can view colleagues" ON public.profiles;
 CREATE POLICY "Approved staff can view colleagues"
 ON public.profiles FOR SELECT
 USING (public.get_current_role() IN ('admin', 'lfo', 'counselor'));
 
+DROP POLICY IF EXISTS "Admin can update profiles and assign roles" ON public.profiles;
 CREATE POLICY "Admin can update profiles and assign roles"
 ON public.profiles FOR UPDATE
 USING (public.is_admin())
 WITH CHECK (public.is_admin());
 
 -- 4. ENROLLMENT OFFICERS TABLE POLICIES (Admin Only)
+DROP POLICY IF EXISTS "Admin full access to enrollment officers" ON public.enrollment_officers;
 CREATE POLICY "Admin full access to enrollment officers"
 ON public.enrollment_officers FOR ALL
 USING (public.is_admin())
 WITH CHECK (public.is_admin());
 
 -- 5. STUDENTS TABLE POLICIES
+DROP POLICY IF EXISTS "Admin and LFO can view all students" ON public.students;
 CREATE POLICY "Admin and LFO can view all students"
 ON public.students FOR SELECT
 USING (public.get_current_role() IN ('admin', 'lfo'));
 
+DROP POLICY IF EXISTS "LFO can insert student stubs" ON public.students;
 CREATE POLICY "LFO can insert student stubs"
 ON public.students FOR INSERT
 WITH CHECK (public.is_lfo() OR public.is_admin());
 
+DROP POLICY IF EXISTS "LFO can update student stubs and assignments" ON public.students;
 CREATE POLICY "LFO can update student stubs and assignments"
 ON public.students FOR UPDATE
 USING (public.is_lfo() OR public.is_admin())
 WITH CHECK (public.is_lfo() OR public.is_admin());
 
+DROP POLICY IF EXISTS "Counselor can view assigned students" ON public.students;
 CREATE POLICY "Counselor can view assigned students"
 ON public.students FOR SELECT
 USING (
   public.is_counselor() AND assigned_counselor_id = auth.uid()
 );
 
+DROP POLICY IF EXISTS "Counselor can update assigned student profiles" ON public.students;
 CREATE POLICY "Counselor can update assigned student profiles"
 ON public.students FOR UPDATE
 USING (
@@ -95,17 +104,20 @@ WITH CHECK (
   public.is_counselor() AND assigned_counselor_id = auth.uid()
 );
 
+DROP POLICY IF EXISTS "Enrollment Officer can view students" ON public.students;
 CREATE POLICY "Enrollment Officer can view students"
 ON public.students FOR SELECT
 USING (public.is_enrollment_officer());
 
 -- 6. DISCIPLINARY RECORDS POLICIES ("Bad Records")
 -- LFO has Exclusive CRUD. Counselors & Officers have Read-Only. Admin is BLOCKED.
+DROP POLICY IF EXISTS "LFO exclusive CRUD for disciplinary records" ON public.disciplinary_records;
 CREATE POLICY "LFO exclusive CRUD for disciplinary records"
 ON public.disciplinary_records FOR ALL
 USING (public.is_lfo())
 WITH CHECK (public.is_lfo());
 
+DROP POLICY IF EXISTS "Counselor can read disciplinary for assigned students" ON public.disciplinary_records;
 CREATE POLICY "Counselor can read disciplinary for assigned students"
 ON public.disciplinary_records FOR SELECT
 USING (
@@ -116,12 +128,14 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Enrollment Officer can read disciplinary records" ON public.disciplinary_records;
 CREATE POLICY "Enrollment Officer can read disciplinary records"
 ON public.disciplinary_records FOR SELECT
 USING (public.is_enrollment_officer());
 
 -- 7. COUNSELING SESSIONS POLICIES
 -- Strictly restricted to the assigned Guidance Counselor. Admin, LFO, Officer = BLOCKED.
+DROP POLICY IF EXISTS "Counselor exclusive access to counseling sessions" ON public.counseling_sessions;
 CREATE POLICY "Counselor exclusive access to counseling sessions"
 ON public.counseling_sessions FOR ALL
 USING (
@@ -133,6 +147,7 @@ WITH CHECK (
 
 -- 8. COUNSELING NOTES & OCR TRANSCRIPTS POLICIES
 -- Strictly restricted to the specific Guidance Counselor. Admin, LFO, Officer = BLOCKED.
+DROP POLICY IF EXISTS "Counselor exclusive access to counseling notes" ON public.counseling_notes;
 CREATE POLICY "Counselor exclusive access to counseling notes"
 ON public.counseling_notes FOR ALL
 USING (
@@ -143,10 +158,12 @@ WITH CHECK (
 );
 
 -- 9. OFFICER ACCESS AUDIT LOGS POLICIES
+DROP POLICY IF EXISTS "Officers can insert audit logs" ON public.officer_access_logs;
 CREATE POLICY "Officers can insert audit logs"
 ON public.officer_access_logs FOR INSERT
 WITH CHECK (public.is_enrollment_officer());
 
+DROP POLICY IF EXISTS "Admin and LFO can view audit logs" ON public.officer_access_logs;
 CREATE POLICY "Admin and LFO can view audit logs"
 ON public.officer_access_logs FOR SELECT
 USING (public.get_current_role() IN ('admin', 'lfo'));
@@ -160,10 +177,12 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage Policies
+DROP POLICY IF EXISTS "Avatars publicly readable" ON storage.objects;
 CREATE POLICY "Avatars publicly readable"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'student-avatars');
 
+DROP POLICY IF EXISTS "Counselors can upload avatars" ON storage.objects;
 CREATE POLICY "Counselors can upload avatars"
 ON storage.objects FOR INSERT
 WITH CHECK (
@@ -171,15 +190,14 @@ WITH CHECK (
   (public.is_counselor() OR public.is_admin())
 );
 
+DROP POLICY IF EXISTS "Only assigned counselor can access counseling documents" ON storage.objects;
 CREATE POLICY "Only assigned counselor can access counseling documents"
 ON storage.objects FOR ALL
 USING (
   bucket_id = 'counseling-documents' AND
-  public.is_counselor() AND
-  (storage.foldername(name))[1] = auth.uid()::text
+  public.is_counselor()
 )
 WITH CHECK (
   bucket_id = 'counseling-documents' AND
-  public.is_counselor() AND
-  (storage.foldername(name))[1] = auth.uid()::text
+  public.is_counselor()
 );
