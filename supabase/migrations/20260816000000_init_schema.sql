@@ -181,3 +181,12 @@ CREATE INDEX IF NOT EXISTS idx_sessions_counselor_date ON public.counseling_sess
 CREATE INDEX IF NOT EXISTS idx_notes_student_id ON public.counseling_notes(student_id);
 CREATE INDEX IF NOT EXISTS idx_disciplinary_student_id ON public.disciplinary_records(student_id);
 CREATE INDEX IF NOT EXISTS idx_audit_officer_id ON public.officer_access_logs(officer_id);
+
+-- 11. Enable Row Level Security (RLS) on all tables
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.enrollment_officers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.disciplinary_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.counseling_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.counseling_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.officer_access_logs ENABLE ROW LEVEL SECURITY;
