@@ -5,6 +5,7 @@
 **Status:** Approved  
 **Platform:** Next.js (App Router), Supabase (PostgreSQL + Auth + Storage), Vercel  
 **Target:** Mobile-First PWA & Desktop-Oriented Management System  
+**Workspace Skills Compliance:** Enforcing guidelines from `.agents/skills/` (`vercel-react-best-practices`, `web-design-guidelines`, `vercel-optimize`)
 
 ---
 
@@ -215,3 +216,24 @@ CREATE TABLE public.officer_access_logs (
 ### 5.4 Enrollment Officer
 * **Mobile / Station View:** Search bar (Name / LRN).
 * **Clearance Screen:** Large photo verification + green/red clearance status badge (zero counseling data exposed).
+
+---
+
+## 6. Engineering Standards & Workspace Skills Compliance (`.agents/skills`)
+
+All development in this repository must strictly adhere to the workspace-specific guidelines provided in `.agents/skills/`:
+
+### 6.1 `vercel-react-best-practices`
+* **Eliminating Waterfalls:** Use `Promise.all` for parallel data fetching in Server Components and API routes.
+* **Bundle Size Optimization:** Direct module imports (no barrel file overhead) and dynamic lazy loading (`next/dynamic`) for heavy client components like `CameraCaptureModal` and `OCRScanReviewModal`.
+* **Server-Side Performance:** Hoist static assets and avoid passing redundant serialized props between Server and Client Components.
+* **Re-render Optimization:** Stable functional state updates, memoizing expensive visual transforms, and avoiding unnecessary context re-renders.
+
+### 6.2 `web-design-guidelines`
+* **Mobile PWA Accessibility:** Minimum 44x44px touch targets for buttons, camera triggers, and modal actions.
+* **Color Contrast & Readability:** Strict WCAG 2.1 AA color contrast for warning disclaimers, clearance badges (clear red/green distinctions with text labels), and timetable cards.
+* **Responsive Layouts:** Seamless fluid transitions between mobile-first portrait viewports and desktop administrative widescreen layouts.
+
+### 6.3 `vercel-optimize`
+* **Zero-Cost Compute:** Lightweight Serverless API routes with early exits, fast streaming responses where applicable, and optimal edge cache headers for public static assets.
+

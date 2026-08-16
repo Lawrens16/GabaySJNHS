@@ -16,6 +16,10 @@
 - IT Admin, LFO, and Enrollment Officers have strict 0% access to `counseling_notes` and `counseling_sessions`.
 - Enrollment Officer sessions must strictly expire after 10 hours via HTTP-only cookie.
 - Every commit on branch `dev` must adhere to concise `caveman-commit` standards.
+- Enforce workspace skills from `.agents/skills/`:
+  - `vercel-react-best-practices`: Eliminate waterfalls (`Promise.all`), dynamic imports for heavy modals, direct imports, and optimized RSC serialization.
+  - `web-design-guidelines`: 44x44px minimum touch targets, accessible contrast, mobile-first responsive layout.
+  - `vercel-optimize`: Lean route handlers, early exits, proper caching headers.
 
 ---
 
