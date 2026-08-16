@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 export const metadata: Metadata = {
-  title: 'GabaySJNHS | Guidance Counseling & Disciplinary Management',
-  description: 'Guidance counseling management, OCR handwritten note digitization, and enrollment disciplinary clearance system for San Jose National High School.',
+  title: 'Gabay | San Jose National High School Guidance & Records',
+  description: 'Guidance counseling schedules, digitized note files, and student enrollment clearance for San Jose National High School.',
   manifest: '/manifest.json',
   icons: {
     icon: '/icons/icon.svg',
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1e3a8a',
+  themeColor: '#51ae44',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -25,15 +26,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className="antialiased min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-        {children}
+      <body className="antialiased min-h-screen flex flex-col bg-background text-foreground">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

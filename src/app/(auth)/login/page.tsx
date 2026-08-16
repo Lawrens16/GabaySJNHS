@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { HeartHandshake, KeyRound, ShieldAlert, ArrowLeft, Loader2 } from 'lucide-react';
+import { KeyRound, ShieldAlert, ArrowLeft, Loader2, HeartHandshake, Sparkles } from 'lucide-react';
+import GabayLogo from '@/components/brand/GabayLogo';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 
 export default function StaffLoginPage() {
   const [loading, setLoading] = useState(false);
@@ -31,35 +33,39 @@ export default function StaffLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-slate-900 via-slate-900 to-blue-950 text-white">
-      <div className="w-full max-w-md">
-        {/* Back Link */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-6 transition"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Home</span>
-        </Link>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background text-foreground transition-colors">
+      <div className="w-full max-w-md space-y-4">
+        {/* Top bar with back link & theme switch */}
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
+          </Link>
+
+          <ThemeToggle />
+        </div>
 
         {/* Card */}
-        <div className="bg-slate-900/80 border border-slate-800 backdrop-blur-xl rounded-2xl p-6 sm:p-8 shadow-2xl">
+        <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
-              <HeartHandshake className="w-8 h-8" />
+          <div className="text-center mb-7">
+            <div className="flex justify-center mb-4">
+              <GabayLogo size="lg" showSubtitle={false} />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Staff Portal Login
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Staff Portal Sign In
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               San Jose National High School • Guidance & Formation
             </p>
           </div>
 
           {/* Error Banner */}
           {errorMsg && (
-            <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5">
+            <div className="mb-6 p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-start gap-2.5">
               <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -69,12 +75,12 @@ export default function StaffLoginPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-semibold text-sm transition-all shadow-lg flex items-center justify-center gap-3 active:scale-98 disabled:opacity-70 cursor-pointer"
+            className="w-full h-12 rounded-xl bg-card hover:bg-muted border border-border text-foreground font-semibold text-sm transition-all shadow-xs flex items-center justify-center gap-3 active:scale-98 disabled:opacity-70 cursor-pointer"
           >
             {loading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                <span>Redirecting to Google...</span>
+                <Loader2 className="w-5 h-5 animate-spin text-gabay-green" />
+                <span>Connecting to Google...</span>
               </>
             ) : (
               <>
@@ -96,27 +102,30 @@ export default function StaffLoginPage() {
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
                   />
                 </svg>
-                <span>Continue with Google</span>
+                <span>Continue with DepEd / Google Account</span>
               </>
             )}
           </button>
 
           {/* Info Notice */}
-          <div className="mt-6 p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs text-slate-400 space-y-2">
-            <div className="font-semibold text-slate-300">Internal Staff Only</div>
-            <p className="leading-relaxed">
-              New accounts will be placed in the <strong>Approval Queue</strong>. Your System Admin will assign your designated role (Guidance Counselor, LFO, or Admin).
+          <div className="mt-6 p-4 rounded-xl bg-accent text-accent-foreground border border-gabay-green/20 text-xs space-y-1.5">
+            <div className="font-bold flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-gabay-green" />
+              <span>School Faculty & Staff Access</span>
+            </div>
+            <p className="leading-relaxed text-[11px] opacity-90">
+              New accounts will be registered and placed in the Approval Queue. Your school administrator will approve and assign your guidance role.
             </p>
           </div>
 
           {/* Switch to Officer PIN */}
-          <div className="mt-8 pt-6 border-t border-slate-800 text-center">
+          <div className="mt-7 pt-5 border-t border-border text-center">
             <Link
               href="/officer/login"
-              className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium transition"
+              className="inline-flex items-center gap-1.5 text-xs text-gabay-navy dark:text-blue-400 hover:underline font-semibold transition"
             >
               <KeyRound className="w-3.5 h-3.5" />
-              <span>Are you a Seasonal Enrollment Officer? Sign in here</span>
+              <span>Seasonal Enrollment Officer? Sign in with PIN</span>
             </Link>
           </div>
         </div>

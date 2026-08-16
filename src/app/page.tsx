@@ -1,164 +1,346 @@
 import Link from 'next/link';
-import { ShieldCheck, HeartHandshake, UserCheck, KeyRound, ArrowRight, Sparkles, Smartphone, CheckCircle } from 'lucide-react';
+import {
+  Calendar,
+  FileText,
+  ShieldCheck,
+  UserCheck,
+  ArrowRight,
+  Sparkles,
+  HeartHandshake,
+  CheckCircle2,
+  Clock,
+  ChevronRight,
+  ShieldAlert,
+  Users,
+  Building2,
+  LogIn
+} from 'lucide-react';
+import GabayLogo from '@/components/brand/GabayLogo';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen flex flex-col justify-between bg-gradient-to-b from-slate-900 via-slate-900 to-blue-950 text-white selection:bg-blue-500 selection:text-white">
-      {/* Header / Brand Nav */}
-      <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30 ring-2 ring-blue-400/20">
-            <HeartHandshake className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-200 via-white to-blue-300">
-              GabaySJNHS
-            </h1>
-            <p className="text-xs text-blue-300/80 font-medium">San Jose National High School</p>
-          </div>
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-200">
+      {/* Top Header Navigation */}
+      <header className="sticky top-0 z-30 bg-card/90 backdrop-blur-md border-b border-border px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-3">
+          <GabayLogo size="md" showSubtitle={true} />
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Lightbulb Theme Toggle Button */}
+          <ThemeToggle showLabel={false} />
+
           <Link
             href="/login"
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-white/10 hover:bg-white/15 backdrop-blur border border-white/10 transition active:scale-95"
+            className="h-10 px-4 sm:px-5 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
           >
-            Staff Portal
-          </Link>
-          <Link
-            href="/officer/login"
-            className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/30 transition active:scale-95 flex items-center gap-1.5"
-          >
-            <KeyRound className="w-4 h-4" />
-            <span>Officer PIN</span>
+            <LogIn className="w-4 h-4" />
+            <span>Staff Sign In</span>
           </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="w-full max-w-5xl mx-auto px-4 py-12 sm:py-16 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-300 text-xs font-semibold mb-6">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Department of Education - DepEd Guidance System</span>
-        </div>
+      {/* Hero Welcome Section */}
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 space-y-10 sm:space-y-14">
+        <section className="text-center space-y-4 max-w-3xl mx-auto pt-2 sm:pt-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-bold border border-gabay-green/30 shadow-xs animate-in fade-in duration-300">
+            <Sparkles className="w-3.5 h-3.5 text-gabay-green" />
+            <span>San Jose National High School • Guidance Office</span>
+          </div>
 
-        <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight max-w-3xl mx-auto leading-tight mb-6">
-          Empowering Student Well-being & Guidance Management
-        </h2>
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-foreground tracking-tight leading-tight">
+            Supporting Every Student&apos;s Journey with <span className="text-gabay-green underline decoration-gabay-green/30 decoration-wavy">Gabay</span>
+          </h1>
 
-        <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-          A mobile-first Progressive Web App digitizing physical counseling notes with OCR, managing disciplinary records, and streamlining enrollment identity verification.
-        </p>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+            A centralized digital workspace designed to help guidance counselors, teachers, and school staff coordinate daily appointments, maintain private student counseling files, and verify enrollment clearances.
+          </p>
 
-        {/* Dual Primary CTA */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-          <Link
-            href="/login"
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-base font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2 group active:scale-98"
-          >
-            <span>Staff Google Sign-In</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link
+              href="/login"
+              className="h-12 px-7 rounded-2xl bg-gabay-green hover:bg-gabay-green-600 text-white font-bold text-sm flex items-center gap-2.5 transition shadow-lg shadow-gabay-green/25 active:scale-95"
+            >
+              <span>Access Staff Portal</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
 
-          <Link
-            href="/officer/login"
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-base font-semibold bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 transition-all flex items-center justify-center gap-2 active:scale-98"
-          >
-            <KeyRound className="w-4 h-4 text-amber-400" />
-            <span>Enrollment Officer Login</span>
-          </Link>
-        </div>
-      </section>
+            <Link
+              href="/officer/login"
+              className="h-12 px-6 rounded-2xl bg-card hover:bg-muted border border-border text-foreground font-semibold text-sm flex items-center gap-2 transition active:scale-95"
+            >
+              <UserCheck className="w-4 h-4 text-gabay-navy" />
+              <span>Enrollment Officer Station</span>
+            </Link>
+          </div>
+        </section>
 
-      {/* 4-Tier Role Architecture Preview Grid */}
-      <section className="w-full max-w-6xl mx-auto px-4 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Counselor Card */}
-          <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur hover:bg-white/[0.07] transition group">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-4">
-              <HeartHandshake className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white mb-1.5">Guidance Counselor</h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Daily scheduled timetable landing, student face photo capture, and OCR handwriting digitization.
+        {/* 4 Dedicated Staff Access Portals */}
+        <section className="space-y-4">
+          <div className="text-center sm:text-left space-y-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+              Select Your Designated Portal
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Sign in with your authorized school account to access your workspace.
             </p>
-            <div className="flex items-center text-xs text-blue-400 font-medium gap-1">
-              <span>Counselor Workspace</span>
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </div>
           </div>
 
-          {/* LFO Card */}
-          <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur hover:bg-white/[0.07] transition group">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+            {/* 1. Guidance Counselor Portal */}
+            <div className="p-6 rounded-3xl bg-card border border-border hover:border-gabay-green/50 transition-all shadow-sm hover:shadow-md flex flex-col justify-between group">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-gabay-green flex items-center justify-center border border-gabay-green/25">
+                    <HeartHandshake className="w-6 h-6" />
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-accent text-accent-foreground text-[11px] font-bold">
+                    Guidance Staff
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-gabay-green transition-colors">
+                    Guidance Counselor Portal
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
+                    View your daily schedule timetable, manage assigned student records, take face photos, and digitize handwritten counseling notes.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-gabay-green shrink-0" />
+                    <span>Daily counseling appointment schedule</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-gabay-green shrink-0" />
+                    <span>Handwritten note scanner & transcription review</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-gabay-green shrink-0" />
+                    <span>Strictly confidential student files</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Link
+                  href="/counselor/timetable"
+                  className="w-full h-11 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md shadow-gabay-green/20"
+                >
+                  <span>Open Counselor Workspace</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
-            <h3 className="text-base font-bold text-white mb-1.5">Learner Formation (LFO)</h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Student stub creation, counselor dispatching, and exclusive disciplinary violation CRUD.
+
+            {/* 2. Learner Formation Portal */}
+            <div className="p-6 rounded-3xl bg-card border border-border hover:border-gabay-navy/50 transition-all shadow-sm hover:shadow-md flex flex-col justify-between group">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/15 text-gabay-navy dark:text-blue-400 flex items-center justify-center border border-gabay-navy/25">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-blue-500/10 text-gabay-navy dark:text-blue-300 text-[11px] font-bold">
+                    Disciplinary Office
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-gabay-navy dark:group-hover:text-blue-400 transition-colors">
+                    Learner Formation (LFO) Hub
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Dispatch initial student stubs to counselors and exclusively maintain campus disciplinary records, infractions, and suspension holds.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-gabay-navy dark:text-blue-400 shrink-0" />
+                    <span>Quick student stub dispatching (Name & Counselor)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-gabay-navy dark:text-blue-400 shrink-0" />
+                    <span>Exclusive disciplinary violation management</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-gabay-navy dark:text-blue-400 shrink-0" />
+                    <span>Suspension clearance actions for enrollment</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Link
+                  href="/lfo/dashboard"
+                  className="w-full h-11 rounded-xl bg-gabay-navy hover:bg-gabay-navy-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md shadow-gabay-navy/20"
+                >
+                  <span>Open Formation Dashboard</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* 3. Enrollment Officer Clearance Station */}
+            <div className="p-6 rounded-3xl bg-card border border-border hover:border-emerald-500/50 transition-all shadow-sm hover:shadow-md flex flex-col justify-between group">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/25">
+                    <UserCheck className="w-6 h-6" />
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
+                    Seasonal Staff
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-emerald-600 transition-colors">
+                    Enrollment Clearance Station
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Designed for seasonal enrollment desks. Simple 6-digit PIN login with student face photo verification and instant clearance indicators.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Fast LRN and Student Name search</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Large student portrait photo verification</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Automatic security access logging</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Link
+                  href="/officer/login"
+                  className="w-full h-11 rounded-xl bg-card hover:bg-muted border border-border text-foreground font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
+                >
+                  <span>Officer PIN Sign In</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* 4. System Administrator */}
+            <div className="p-6 rounded-3xl bg-card border border-border hover:border-slate-500/50 transition-all shadow-sm hover:shadow-md flex flex-col justify-between group">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center border border-border">
+                    <Building2 className="w-6 h-6" />
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-[11px] font-bold">
+                    IT & Admin
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-foreground transition-colors">
+                    System Administration
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Approve incoming staff sign-in requests, manage seasonal enrollment officer credentials, and review station audit logs.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-muted-foreground pt-1">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span>Staff Google account approval queue</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span>Provision enrollment station passes & PINs</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span>Strict privacy isolation from counseling data</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Link
+                  href="/admin/approval-queue"
+                  className="w-full h-11 rounded-xl bg-card hover:bg-muted border border-border text-foreground font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
+                >
+                  <span>Open Admin Console</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Helps Our School (Guidance Philosophy) */}
+        <section className="p-6 sm:p-8 rounded-3xl bg-card border border-border space-y-5">
+          <div className="space-y-1">
+            <h3 className="text-lg sm:text-xl font-bold text-foreground">
+              How Gabay Supports San Jose NHS
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Built with care to address the day-to-day coordination needs of our high school guidance department.
             </p>
-            <div className="flex items-center text-xs text-amber-400 font-medium gap-1">
-              <span>Disciplinary Hub</span>
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </div>
           </div>
 
-          {/* Enrollment Officer Card */}
-          <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur hover:bg-white/[0.07] transition group">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
-              <UserCheck className="w-5 h-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div className="p-4 rounded-2xl bg-muted/60 border border-border space-y-2">
+              <div className="w-8 h-8 rounded-xl bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">
+                1
+              </div>
+              <h4 className="text-sm font-bold text-foreground">Clear Daily Timetables</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Counselors immediately view their daily schedule upon signing in, eliminating missed sessions and lost paper slips.
+              </p>
             </div>
-            <h3 className="text-base font-bold text-white mb-1.5">Enrollment Officer</h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Seasonal PIN login, 10-hour strict sessions, student photo ID verification, and clearance checks.
-            </p>
-            <div className="flex items-center text-xs text-emerald-400 font-medium gap-1">
-              <span>Clearance Station</span>
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </div>
-          </div>
 
-          {/* IT Admin Card */}
-          <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur hover:bg-white/[0.07] transition group">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-4">
-              <KeyRound className="w-5 h-5" />
+            <div className="p-4 rounded-2xl bg-muted/60 border border-border space-y-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-gabay-navy dark:text-blue-300 flex items-center justify-center font-bold text-sm">
+                2
+              </div>
+              <h4 className="text-sm font-bold text-foreground">Paperless Note Digitization</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Take a quick photo of handwritten notes during sessions to store them securely in the student&apos;s private counseling history.
+              </p>
             </div>
-            <h3 className="text-base font-bold text-white mb-1.5">System Admin</h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Google OAuth Approval Queue, role assignments, PIN credential issuance, and audit log inspection.
-            </p>
-            <div className="flex items-center text-xs text-purple-400 font-medium gap-1">
-              <span>Admin Console</span>
-              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+
+            <div className="p-4 rounded-2xl bg-muted/60 border border-border space-y-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-sm">
+                3
+              </div>
+              <h4 className="text-sm font-bold text-foreground">Seamless Enrollment Checks</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Enrollment officers can confirm student identity via photo ID and check clearance in seconds during busy registration weeks.
+              </p>
             </div>
           </div>
+        </section>
+      </main>
+
+      {/* School Attribution Footer */}
+      <footer className="border-t border-border bg-card py-6 px-4 text-center text-xs text-muted-foreground">
+        <div className="max-w-6xl mx-auto space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            <GabayLogo size="sm" showSubtitle={false} />
+          </div>
+          <p className="text-[11px] leading-relaxed max-w-xl mx-auto">
+            Developed to support the Guidance Counseling Office and Faculty of <strong>San Jose National High School</strong>.
+          </p>
+          <p className="text-[10px] text-muted-foreground/80">
+            Dedicated to the welfare, guidance, and academic growth of every Learner.
+          </p>
         </div>
-
-        {/* Feature badges */}
-        <div className="mt-8 pt-8 border-t border-white/[0.08] flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 font-medium">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <span>Zero-Cost Architecture</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Smartphone className="w-4 h-4 text-blue-400" />
-            <span>Mobile-First Camera PWA</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <span>PostgreSQL Row Level Security</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <span>Free OCR.Space Handwriting API</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="w-full border-t border-white/10 py-6 text-center text-xs text-slate-500">
-        <p>© 2026 San Jose National High School. All rights reserved. DepEd Region IV-A CALABARZON.</p>
       </footer>
-    </main>
+    </div>
   );
 }

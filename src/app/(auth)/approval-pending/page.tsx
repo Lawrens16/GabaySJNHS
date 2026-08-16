@@ -1,16 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Clock, RefreshCw, LogOut, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Clock, RefreshCw, LogOut, HeartHandshake, Sparkles } from 'lucide-react';
+import GabayLogo from '@/components/brand/GabayLogo';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 
 export default function ApprovalPendingPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     setChecking(true);
     try {
       const supabase = createClient();
@@ -42,7 +44,7 @@ export default function ApprovalPendingPage() {
     } finally {
       setChecking(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     checkStatus();
@@ -65,7 +67,7 @@ export default function ApprovalPendingPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [checkStatus]);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -74,59 +76,65 @@ export default function ApprovalPendingPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-slate-900 via-slate-900 to-blue-950 text-white">
-      <div className="w-full max-w-md bg-slate-900/80 border border-slate-800 backdrop-blur-xl rounded-2xl p-6 sm:p-8 shadow-2xl text-center">
-        {/* Animated Icon */}
-        <div className="relative w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-6">
-          <Clock className="w-8 h-8 animate-pulse" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full animate-ping opacity-75" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background text-foreground transition-colors">
+      <div className="w-full max-w-md space-y-4">
+        <div className="flex justify-end">
+          <ThemeToggle />
         </div>
 
-        <h1 className="text-2xl font-bold text-white mb-2">
-          Waiting for Admin Approval
-        </h1>
-
-        <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-          Your Google account has been registered. The System Administrator will review your account and assign your staff role shortly.
-        </p>
-
-        {/* User Identity Card */}
-        {userEmail && (
-          <div className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 mb-6 flex items-center justify-between">
-            <div className="text-left overflow-hidden">
-              <div className="text-[10px] text-slate-400 font-medium">Logged in as:</div>
-              <div className="font-semibold text-white truncate max-w-[200px]">{userEmail}</div>
-            </div>
-            <span className="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-300 text-[11px] font-semibold">
-              Pending
-            </span>
+        <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl text-center">
+          {/* Animated Icon */}
+          <div className="relative w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-5 shadow-xs">
+            <Clock className="w-8 h-8 animate-pulse" />
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full animate-ping opacity-75" />
           </div>
-        )}
 
-        {/* Actions */}
-        <div className="space-y-3">
-          <button
-            onClick={checkStatus}
-            disabled={checking}
-            className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${checking ? 'animate-spin' : ''}`} />
-            <span>{checking ? 'Checking Status...' : 'Check Status Now'}</span>
-          </button>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
+            Awaiting Staff Approval
+          </h1>
 
-          <button
-            onClick={handleSignOut}
-            className="w-full h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Sign Out</span>
-          </button>
+          <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
+            Your Google account has been registered. The School Administrator will review your account and assign your guidance role shortly.
+          </p>
+
+          {/* User Identity Card */}
+          {userEmail && (
+            <div className="p-3.5 rounded-2xl bg-muted/60 border border-border text-xs text-foreground mb-6 flex items-center justify-between">
+              <div className="text-left overflow-hidden">
+                <div className="text-[10px] text-muted-foreground font-medium">Logged in as:</div>
+                <div className="font-semibold text-foreground truncate max-w-[200px]">{userEmail}</div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-[11px] font-bold">
+                Pending Review
+              </span>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="space-y-3">
+            <button
+              onClick={checkStatus}
+              disabled={checking}
+              className="w-full h-11 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${checking ? 'animate-spin' : ''}`} />
+              <span>{checking ? 'Checking Status...' : 'Check Approval Status'}</span>
+            </button>
+
+            <button
+              onClick={handleSignOut}
+              className="w-full h-11 rounded-xl bg-card hover:bg-muted border border-border text-foreground font-medium text-xs transition flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+
+          {/* Help footer */}
+          <p className="mt-8 text-[11px] text-muted-foreground">
+            San Jose National High School Guidance Office Support
+          </p>
         </div>
-
-        {/* Help footer */}
-        <p className="mt-8 text-[11px] text-slate-500">
-          Need urgent access? Please contact the San Jose NHS IT Department.
-        </p>
       </div>
     </div>
   );

@@ -3,67 +3,68 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #1e3a8a;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #dbeafe;
-  --accent-foreground: #1e3a8a;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #3b82f6;
-  --radius: 0.75rem;
+  /* LIGHT MODE (Default) - Warm Campus Classic */
+  --background: #F8FAF6;
+  --foreground: #131E29;
+  --card: #FFFFFF;
+  --card-foreground: #131E29;
+  --popover: #FFFFFF;
+  --popover-foreground: #131E29;
+  --primary: #51ae44;
+  --primary-foreground: #FFFFFF;
+  --secondary: #0d14a6;
+  --secondary-foreground: #FFFFFF;
+  --muted: #EDF2EC;
+  --muted-foreground: #5A6872;
+  --accent: #E8F5E5;
+  --accent-foreground: #2E6E24;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2E8DF;
+  --input: #E2E8DF;
+  --ring: #51ae44;
+  --radius: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #090d16;
-    --foreground: #f8fafc;
-    --card: #0f172a;
-    --card-foreground: #f8fafc;
-    --popover: #0f172a;
-    --popover-foreground: #f8fafc;
-    --primary: #3b82f6;
-    --primary-foreground: #ffffff;
-    --secondary: #1e293b;
-    --secondary-foreground: #f8fafc;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --accent: #1e3a8a;
-    --accent-foreground: #93c5fd;
-    --destructive: #dc2626;
-    --destructive-foreground: #ffffff;
-    --border: #334155;
-    --input: #334155;
-    --ring: #60a5fa;
-  }
+.dark {
+  /* DARK MODE (Toggleable) - Midnight Slate */
+  --background: #0B111A;
+  --foreground: #F1F5F9;
+  --card: #121D2B;
+  --card-foreground: #F1F5F9;
+  --popover: #121D2B;
+  --popover-foreground: #F1F5F9;
+  --primary: #61c753;
+  --primary-foreground: #0B111A;
+  --secondary: #3b4cca;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1A2536;
+  --muted-foreground: #94A3B8;
+  --accent: #16281E;
+  --accent-foreground: #86EFAC;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #1E2E42;
+  --input: #1E2E42;
+  --ring: #61c753;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--background);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Accessible minimum touch target for mobile interactive elements (Web Interface Guidelines) */
+/* Accessible minimum touch target for mobile elements */
 button, a, input, select, textarea {
   touch-action: manipulation;
 }
 
-/* Custom scrollbars */
+/* Custom smooth scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -72,9 +73,9 @@ button, a, input, select, textarea {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.7);
+  background: rgba(148, 163, 184, 0.65);
 }
