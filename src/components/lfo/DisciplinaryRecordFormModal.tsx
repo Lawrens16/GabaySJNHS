@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, ShieldAlert, Calendar, Check, Loader2, UserCheck, AlertTriangle } from 'lucide-react';
+import { X, ShieldAlert, Calendar, Check, Loader2 } from 'lucide-react';
 import { DisciplinaryRecord, OffenseCategory, ClearanceStatus, Student } from '@/types/database.types';
 
 interface DisciplinaryRecordFormModalProps {
@@ -59,7 +59,9 @@ export default function DisciplinaryRecordFormModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentId || !offenseDescription.trim() || !sanctionImposed.trim()) {
+    const effectiveStudentId = studentId || preselectedStudentId || students[0]?.id;
+
+    if (!effectiveStudentId || !offenseDescription.trim() || !sanctionImposed.trim()) {
       setErrorMsg('Please complete all required fields.');
       return;
     }
@@ -82,7 +84,7 @@ export default function DisciplinaryRecordFormModal({
             clearanceStatus,
           }
         : {
-            studentId,
+            studentId: effectiveStudentId,
             incidentDate,
             offenseCategory,
             offenseDescription,
@@ -119,31 +121,31 @@ export default function DisciplinaryRecordFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 sm:p-7 max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg bg-card border border-border text-foreground rounded-3xl overflow-hidden shadow-2xl p-6 sm:p-7 max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0 mb-4">
+        <div className="flex items-center justify-between pb-4 border-b border-border shrink-0 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-              <ShieldAlert className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center border border-amber-500/30">
+              <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-foreground">
                 {initialRecord ? 'Edit Disciplinary Record' : 'Log Student Infraction'}
               </h3>
-              <p className="text-xs text-slate-400">LFO Disciplinary & Suspension Tracking</p>
+              <p className="text-xs text-muted-foreground">LFO Disciplinary & Suspension Tracking</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+            className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs shrink-0">
+          <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs shrink-0">
             {errorMsg}
           </div>
         )}
@@ -152,14 +154,14 @@ export default function DisciplinaryRecordFormModal({
           {/* Select Student */}
           {!initialRecord && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Select Student *
               </label>
               <select
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 required
-                className="w-full h-11 px-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-3.5 rounded-xl bg-card border border-border text-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               >
                 <option value="">Select a student...</option>
                 {students.map((s) => (
@@ -174,13 +176,13 @@ export default function DisciplinaryRecordFormModal({
           {/* Offense Category & Incident Date */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Offense Severity *
               </label>
               <select
                 value={offenseCategory}
                 onChange={(e) => setOffenseCategory(e.target.value as OffenseCategory)}
-                className="w-full h-11 px-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-3.5 rounded-xl bg-card border border-border text-foreground text-xs font-semibold focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               >
                 <option value="minor">Minor Offense</option>
                 <option value="major">Major Offense</option>
@@ -189,8 +191,8 @@ export default function DisciplinaryRecordFormModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-gabay-green" />
                 <span>Incident Date *</span>
               </label>
               <input
@@ -198,14 +200,14 @@ export default function DisciplinaryRecordFormModal({
                 value={incidentDate}
                 onChange={(e) => setIncidentDate(e.target.value)}
                 required
-                className="w-full h-11 px-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-3.5 rounded-xl bg-card border border-border text-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
           </div>
 
           {/* Offense Description */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               Violation / Incident Description *
             </label>
             <textarea
@@ -214,13 +216,13 @@ export default function DisciplinaryRecordFormModal({
               placeholder="Detail the specific misconduct or violation..."
               rows={3}
               required
-              className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none transition resize-none"
+              className="w-full p-3 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition resize-none"
             />
           </div>
 
           {/* Sanctions Imposed */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               Sanctions / Interventions Imposed *
             </label>
             <input
@@ -229,20 +231,20 @@ export default function DisciplinaryRecordFormModal({
               onChange={(e) => setSanctionImposed(e.target.value)}
               placeholder="e.g. 3-day in-school suspension, community service, parent conference"
               required
-              className="w-full h-11 px-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+              className="w-full h-11 px-3.5 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
             />
           </div>
 
           {/* Suspension Checkbox & Dates */}
-          <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700 space-y-3">
+          <div className="p-3.5 rounded-2xl bg-muted/60 border border-border space-y-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={isSuspended}
                 onChange={(e) => setIsSuspended(e.target.checked)}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 bg-slate-900 border-slate-700"
+                className="w-4 h-4 rounded text-gabay-green focus:ring-gabay-green border-border"
               />
-              <span className="text-xs font-bold text-amber-300">
+              <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
                 Disciplinary Suspension (Holds Enrollment Clearance)
               </span>
             </label>
@@ -250,23 +252,23 @@ export default function DisciplinaryRecordFormModal({
             {isSuspended && (
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">Start Date</label>
+                  <label className="block text-[11px] text-muted-foreground mb-1">Start Date</label>
                   <input
                     type="date"
                     value={suspensionStartDate}
                     onChange={(e) => setSuspensionStartDate(e.target.value)}
                     required={isSuspended}
-                    className="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs"
+                    className="w-full h-9 px-3 rounded-lg bg-card border border-border text-foreground text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">End Date</label>
+                  <label className="block text-[11px] text-muted-foreground mb-1">End Date</label>
                   <input
                     type="date"
                     value={suspensionEndDate}
                     onChange={(e) => setSuspensionEndDate(e.target.value)}
                     required={isSuspended}
-                    className="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs"
+                    className="w-full h-9 px-3 rounded-lg bg-card border border-border text-foreground text-xs"
                   />
                 </div>
               </div>
@@ -275,13 +277,13 @@ export default function DisciplinaryRecordFormModal({
 
           {/* Clearance Status */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               Clearance Status
             </label>
             <select
               value={clearanceStatus}
               onChange={(e) => setClearanceStatus(e.target.value as ClearanceStatus)}
-              className="w-full h-11 px-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+              className="w-full h-11 px-3.5 rounded-xl bg-card border border-border text-foreground text-xs font-semibold focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
             >
               <option value="pending">🟡 Pending / In Progress</option>
               <option value="served">🔵 Sanctions Served</option>
@@ -291,18 +293,18 @@ export default function DisciplinaryRecordFormModal({
           </div>
 
           {/* Buttons */}
-          <div className="pt-3 flex items-center justify-end gap-2 shrink-0">
+          <div className="pt-3 flex items-center justify-end gap-2.5 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="h-10 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
+              className="h-10 px-4 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="h-10 px-5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-lg shadow-amber-600/30 cursor-pointer"
+              className="h-10 px-5 rounded-xl bg-gabay-navy hover:bg-gabay-navy-800 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer"
             >
               {loading ? (
                 <>

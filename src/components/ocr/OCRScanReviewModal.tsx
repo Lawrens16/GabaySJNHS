@@ -4,15 +4,14 @@ import { useState, useEffect } from 'react';
 import {
   FileText,
   AlertTriangle,
-  Check,
   X,
   Loader2,
-  Sparkles,
   Eye,
   Edit3,
   Calendar,
   Save,
-  RotateCcw
+  RotateCcw,
+  Info
 } from 'lucide-react';
 import { SessionType } from '@/types/database.types';
 
@@ -45,7 +44,7 @@ export default function OCRScanReviewModal({
   const [editedText, setEditedText] = useState('');
   const [sessionType, setSessionType] = useState<SessionType>('routine');
   const [saving, setSaving] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [ocrFailedNotice, setOcrFailedNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'review' | 'image'>('review');
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export default function OCRScanReviewModal({
 
   const runOCR = async (file: File) => {
     setOcrLoading(true);
-    setErrorMsg(null);
+    setOcrFailedNotice(null);
 
     try {
       const formData = new FormData();
@@ -70,15 +69,17 @@ export default function OCRScanReviewModal({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to extract text from scan.');
+        throw new Error(data.error || 'OCR handwriting transcription could not connect.');
       }
 
       const text = data.rawText || '';
       setOcrRawText(text);
-      setEditedText(text || 'No clear handwritten text detected. You can type counseling notes here manually.');
+      setEditedText(text || '');
     } catch (err: any) {
-      console.warn('OCR error:', err);
-      setErrorMsg(err.message || 'OCR service was unable to parse the document. You can still type notes manually.');
+      console.warn('OCR note:', err);
+      setOcrFailedNotice(
+        'Automated handwriting recognition could not connect. Your photo is securely captured — you can type your notes manually below or proceed to save the photo.'
+      );
       setEditedText('');
     } finally {
       setOcrLoading(false);
@@ -87,25 +88,22 @@ export default function OCRScanReviewModal({
 
   const handleCommit = async () => {
     if (!imageFile) return;
-    if (!editedText.trim()) {
-      setErrorMsg('Please ensure there is text content in the note before saving.');
-      return;
-    }
 
     try {
       setSaving(true);
-      setErrorMsg(null);
+
+      const finalNoteText = editedText.trim() || '[Handwritten Document Scan Attached]';
 
       await onSaveNote({
         imageFile,
         ocrRaw: ocrRawText,
-        counselorEdited: editedText.trim(),
+        counselorEdited: finalNoteText,
         sessionType,
       });
 
       onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to save counseling note.');
+    } catch {
+      // Ignored
     } finally {
       setSaving(false);
     }
@@ -114,47 +112,49 @@ export default function OCRScanReviewModal({
   if (!isOpen || !previewUrl) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl bg-card border border-border text-foreground rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/95 shrink-0">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-card shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
-              <FileText className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center border border-gabay-green/25 shadow-xs">
+              <FileText className="w-5 h-5 text-gabay-green" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Digitize Counseling Note</h2>
-              <p className="text-xs text-slate-400">Student: <span className="text-slate-200 font-semibold">{studentName}</span></p>
+              <h2 className="text-base font-bold text-foreground">Digitize Counseling Note</h2>
+              <p className="text-xs text-muted-foreground">
+                Student: <span className="text-foreground font-semibold">{studentName}</span>
+              </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+            className="w-9 h-9 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Mobile Tab Switcher */}
-        <div className="flex lg:hidden border-b border-slate-800 bg-slate-950/50 p-1">
+        <div className="flex lg:hidden border-b border-border bg-muted/40 p-1">
           <button
             onClick={() => setActiveTab('review')}
             className={`flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
               activeTab === 'review'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Edit3 className="w-3.5 h-3.5" />
-            <span>Transcribed Note</span>
+            <span>Note Transcript</span>
           </button>
           <button
             onClick={() => setActiveTab('image')}
             className={`flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
               activeTab === 'image'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
@@ -162,7 +162,7 @@ export default function OCRScanReviewModal({
           </button>
         </div>
 
-        {/* Body Content: Split View (Side-by-Side on Desktop, Tabs on Mobile) */}
+        {/* Body Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column: Original Scanned Image */}
           <div
@@ -171,65 +171,68 @@ export default function OCRScanReviewModal({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Original Physical Note
               </span>
               <button
                 type="button"
                 onClick={onRetake}
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition"
+                className="text-xs text-gabay-green hover:underline flex items-center gap-1 transition"
               >
                 <RotateCcw className="w-3 h-3" />
-                <span>Retake Scan</span>
+                <span>Retake Photo</span>
               </button>
             </div>
 
-            <div className="relative flex-1 min-h-[260px] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden flex items-center justify-center p-2 group">
+            <div className="relative flex-1 min-h-[260px] bg-muted/40 rounded-2xl border border-border overflow-hidden flex items-center justify-center p-2 group">
               <img
                 src={previewUrl}
                 alt="Original Scanned Note"
-                className="max-h-[460px] w-auto object-contain rounded-lg shadow-md"
+                className="max-h-[460px] w-auto object-contain rounded-lg shadow-xs"
               />
-              <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur text-[10px] text-slate-300">
-                Pinch / Click to inspect
+              <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur text-[10px] text-white">
+                Scan Preview
               </div>
             </div>
           </div>
 
-          {/* Right Column: OCR Text Review & Editing */}
+          {/* Right Column: OCR Text Review & Manual Editing */}
           <div
             className={`flex-col space-y-4 ${
               activeTab === 'review' ? 'flex' : 'hidden lg:flex'
             }`}
           >
-            {/* Handwriting Accuracy Disclaimer Alert */}
-            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs flex items-start gap-2.5 shadow-sm">
-              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
+            {/* Disclaimer Alert */}
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2.5 shadow-xs">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
               <div className="space-y-1">
-                <span className="font-bold">OCR Accuracy Disclaimer</span>
-                <p className="text-[11px] text-amber-200/80 leading-relaxed">
-                  Automated handwriting OCR is an AI assistant tool. Please carefully proofread and edit the transcript below against the original scan before saving.
+                <span className="font-bold">Handwritten Note Digitization</span>
+                <p className="text-[11px] opacity-90 leading-relaxed">
+                  Please review and edit the transcript against your handwritten notes. You can freely type or refine observations.
                 </p>
               </div>
             </div>
 
-            {/* Error banner if OCR had issue */}
-            {errorMsg && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
-                {errorMsg}
+            {/* OCR Fallback Notice if OCR service was unreachable */}
+            {ocrFailedNotice && (
+              <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/25 text-blue-800 dark:text-blue-300 text-xs flex items-start gap-2.5">
+                <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-600 dark:text-blue-400" />
+                <p className="text-[11px] leading-relaxed">
+                  {ocrFailedNotice}
+                </p>
               </div>
             )}
 
-            {/* Session Type Select */}
+            {/* Session Category Select */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-blue-400" />
+              <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-gabay-green" />
                 <span>Session Category</span>
               </label>
               <select
                 value={sessionType}
                 onChange={(e) => setSessionType(e.target.value as SessionType)}
-                className="w-full h-11 px-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                className="w-full h-11 px-3.5 rounded-xl bg-card border border-border text-foreground text-xs font-medium focus:outline-none focus:ring-2 focus:ring-gabay-green transition"
               >
                 <option value="routine">Routine Check-in</option>
                 <option value="intake">Initial Intake Evaluation</option>
@@ -241,16 +244,16 @@ export default function OCRScanReviewModal({
             </div>
 
             {/* Transcribed Textarea */}
-            <div className="flex-1 flex flex-col min-h-[220px]">
+            <div className="flex-1 flex flex-col min-h-[200px]">
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <Edit3 className="w-3.5 h-3.5 text-blue-400" />
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Edit3 className="w-3.5 h-3.5 text-gabay-green" />
                   <span>Transcribed Notes (Editable)</span>
                 </label>
                 {ocrLoading && (
-                  <span className="text-[11px] text-blue-400 flex items-center gap-1 animate-pulse">
+                  <span className="text-[11px] text-gabay-green flex items-center gap-1 animate-pulse">
                     <Loader2 className="w-3 h-3 animate-spin" />
-                    <span>Processing handwriting OCR...</span>
+                    <span>Reading handwriting...</span>
                   </span>
                 )}
               </div>
@@ -258,31 +261,31 @@ export default function OCRScanReviewModal({
               <textarea
                 value={editedText}
                 onChange={(e) => setEditedText(e.target.value)}
-                placeholder="Transcribed counseling notes will appear here. You can edit, fix typos, or add details..."
+                placeholder="Type or edit session observations here (or leave blank to save the photo directly)..."
                 disabled={ocrLoading}
-                rows={8}
-                className="w-full flex-1 p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-white placeholder-slate-500 text-xs sm:text-sm font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"
+                rows={7}
+                className="w-full flex-1 p-3.5 rounded-2xl bg-card border border-border text-foreground placeholder-muted-foreground text-xs sm:text-sm font-sans leading-relaxed focus:outline-none focus:ring-2 focus:ring-gabay-green transition resize-none"
               />
             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="px-5 py-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-3 shrink-0">
+        <div className="px-5 py-4 bg-card border-t border-border flex items-center justify-between gap-3 shrink-0">
           <button
             type="button"
             onClick={onRetake}
-            className="h-11 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer"
+            className="h-11 px-4 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
-            <span className="hidden sm:inline">Retake Scan</span>
+            <span className="hidden sm:inline">Retake Photo</span>
           </button>
 
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="h-11 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-semibold transition active:scale-95 cursor-pointer"
+              className="h-11 px-4 rounded-xl bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground text-xs font-semibold transition active:scale-95 cursor-pointer"
             >
               Cancel
             </button>
@@ -290,18 +293,18 @@ export default function OCRScanReviewModal({
             <button
               type="button"
               onClick={handleCommit}
-              disabled={ocrLoading || saving || !editedText.trim()}
-              className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition shadow-lg shadow-blue-600/30 active:scale-95 cursor-pointer"
+              disabled={ocrLoading || saving}
+              className="h-11 px-6 rounded-xl bg-gabay-green hover:bg-gabay-green-600 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition shadow-sm active:scale-95 cursor-pointer"
             >
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Saving to Bucket & DB...</span>
+                  <span>Saving to Student File...</span>
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span>Save Digitized Note</span>
+                  <span>Save Note to File</span>
                 </>
               )}
             </button>

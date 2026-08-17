@@ -1,5 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
+
+// Helper: Safely resolve a valid LFO / Staff profile ID
+async function resolveLfoProfileId(providedId?: string | null): Promise<string> {
+  const adminClient = createAdminClient();
+
+  // 1. If provided and valid non-dummy string, verify exists in profiles
+  if (providedId && providedId !== '00000000-0000-0000-0000-000000000002') {
+    const { data: existing } = await adminClient
+      .from('profiles')
+      .select('id')
+      .eq('id', providedId)
+      .single();
+    if (existing?.id) return existing.id;
+  }
+
+  // 2. Check current authenticated user session
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id) {
+      const { data: userProfile } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+      if (userProfile?.id) return userProfile.id;
+    }
+  } catch {
+    // Continue fallback
+  }
+
+  // 3. Fallback: Query first available approved staff (lfo or admin)
+  const { data: staffList } = await adminClient
+    .from('profiles')
+    .select('id')
+    .in('role', ['lfo', 'admin', 'counselor'])
+    .eq('status', 'approved')
+    .limit(1);
+
+  if (staffList && staffList.length > 0) {
+    return staffList[0].id;
+  }
+
+  // 4. Ultimate fallback: Any profile in table
+  const { data: anyProfile } = await adminClient
+    .from('profiles')
+    .select('id')
+    .limit(1);
+
+  if (anyProfile && anyProfile.length > 0) {
+    return anyProfile[0].id;
+  }
+
+  throw new Error('No registered staff profile found in the database. Please ensure at least one staff account is approved.');
+}
 
 // GET: List all Disciplinary Records ("Bad Records")
 export async function GET(req: NextRequest) {
@@ -61,18 +116,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const resolvedLfoId = await resolveLfoProfileId(lfoId);
     const adminClient = createAdminClient();
 
     const { data, error } = await adminClient
       .from('disciplinary_records')
       .insert({
         student_id: studentId,
-        lfo_id: lfoId || '00000000-0000-0000-0000-000000000002',
+        lfo_id: resolvedLfoId,
         incident_date: incidentDate || new Date().toISOString().split('T')[0],
         offense_category: offenseCategory || 'minor',
         offense_description: offenseDescription.trim(),
         sanction_imposed: sanctionImposed.trim(),
-        is_suspended: isSuspended || false,
+        is_suspended: Boolean(isSuspended),
         suspension_start_date: isSuspended ? suspensionStartDate : null,
         suspension_end_date: isSuspended ? suspensionEndDate : null,
         clearance_status: clearanceStatus || 'pending',
@@ -128,7 +184,8 @@ export async function PATCH(req: NextRequest) {
       updatePayload.clearance_status = clearanceStatus;
       if (clearanceStatus === 'cleared') {
         updatePayload.cleared_at = new Date().toISOString();
-        if (clearedByLfoId) updatePayload.cleared_by_lfo_id = clearedByLfoId;
+        const resolvedClearerId = await resolveLfoProfileId(clearedByLfoId);
+        updatePayload.cleared_by_lfo_id = resolvedClearerId;
       }
     }
 

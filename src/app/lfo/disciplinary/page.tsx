@@ -5,10 +5,8 @@ import {
   ShieldAlert,
   Plus,
   Search,
-  Filter,
   CheckCircle2,
   AlertTriangle,
-  Clock,
   RefreshCw,
   Loader2,
   Edit2,
@@ -105,14 +103,14 @@ export default function LFODisciplinaryPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
               Disciplinary & Suspension Management
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-400/30">
+            <span className="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-300 text-xs font-bold border border-rose-500/25">
               LFO Exclusive CRUD
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Maintain campus disciplinary infractions and resolve student clearance status for enrollment.
           </p>
         </div>
@@ -121,7 +119,7 @@ export default function LFODisciplinaryPage() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="h-10 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer"
+            className="h-10 px-3.5 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -132,7 +130,7 @@ export default function LFODisciplinaryPage() {
               setSelectedRecord(null);
               setIsModalOpen(true);
             }}
-            className="h-10 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-2 transition shadow-lg shadow-amber-600/30 active:scale-95 cursor-pointer"
+            className="h-10 px-4 rounded-xl bg-gabay-navy hover:bg-gabay-navy-800 text-white text-xs font-semibold flex items-center gap-2 transition shadow-sm active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Log Infraction</span>
@@ -143,17 +141,17 @@ export default function LFODisciplinaryPage() {
       {/* Filter & Search Bar */}
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by student name, violation, or sanction..."
-            className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+            className="w-full h-11 pl-10 pr-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
           />
         </div>
 
-        <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800 w-full sm:w-auto">
+        <div className="flex items-center p-1 rounded-xl bg-card border border-border w-full sm:w-auto shadow-xs">
           {[
             { id: 'all', label: 'All Records' },
             { id: 'pending', label: '🟡 Pending' },
@@ -165,8 +163,8 @@ export default function LFODisciplinaryPage() {
               onClick={() => setClearanceFilter(tab.id)}
               className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
                 clearanceFilter === tab.id
-                  ? 'bg-amber-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-gabay-navy text-white shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -178,15 +176,15 @@ export default function LFODisciplinaryPage() {
       {/* Disciplinary Records Grid / List */}
       <div className="space-y-3">
         {loading ? (
-          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3 bg-slate-900/50 rounded-2xl border border-slate-800">
-            <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
+          <div className="p-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-3 bg-card rounded-2xl border border-border">
+            <Loader2 className="w-6 h-6 animate-spin text-gabay-green" />
             <span className="text-xs">Loading disciplinary violations...</span>
           </div>
         ) : filteredRecords.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 bg-slate-900/50 rounded-2xl border border-slate-800">
-            <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-            <h3 className="text-sm font-semibold text-white">No disciplinary records found</h3>
-            <p className="text-xs text-slate-500 mt-1">There are no infractions matching the current filter.</p>
+          <div className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border shadow-xs">
+            <CheckCircle2 className="w-8 h-8 text-gabay-green mx-auto mb-2" />
+            <h3 className="text-sm font-semibold text-foreground">No disciplinary records found</h3>
+            <p className="text-xs text-muted-foreground mt-1">There are no infractions matching the current filter.</p>
           </div>
         ) : (
           filteredRecords.map((r) => {
@@ -195,16 +193,16 @@ export default function LFODisciplinaryPage() {
             return (
               <div
                 key={r.id}
-                className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur hover:border-slate-700 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                className="p-5 rounded-2xl bg-card border border-border hover:border-gabay-green/40 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs"
               >
                 {/* Left: Info */}
                 <div className="space-y-2 max-w-2xl">
                   <div className="flex items-center flex-wrap gap-2">
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-sm font-bold text-foreground">
                       {r.student ? `${r.student.first_name} ${r.student.last_name}` : 'Student Record'}
                     </span>
                     {r.student?.grade_level && (
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted-foreground">
                         • Grade {r.student.grade_level} - {r.student.section || 'General'}
                       </span>
                     )}
@@ -212,36 +210,36 @@ export default function LFODisciplinaryPage() {
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                         r.offense_category === 'grave'
-                          ? 'bg-rose-600/30 text-rose-300 border border-rose-500/40'
+                          ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30'
                           : r.offense_category === 'major'
-                          ? 'bg-amber-600/30 text-amber-300 border border-amber-500/40'
-                          : 'bg-blue-600/30 text-blue-300 border border-blue-500/40'
+                          ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                          : 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30'
                       }`}
                     >
                       {r.offense_category} Offense
                     </span>
 
                     {isSuspendedAndActive && (
-                      <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-500/30 flex items-center gap-1 animate-pulse">
+                      <span className="px-2 py-0.5 rounded-full bg-destructive/15 text-destructive text-[10px] font-bold border border-destructive/30 flex items-center gap-1 animate-pulse">
                         <AlertTriangle className="w-3 h-3" />
                         <span>Suspension Active (Hold)</span>
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                  <p className="text-xs text-foreground leading-relaxed font-medium">
                     &quot;{r.offense_description}&quot;
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
-                    <div className="flex items-center gap-1.5 text-amber-300/90 font-medium">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
+                    <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 font-medium">
                       <span>Sanction:</span> {r.sanction_imposed}
                     </div>
                     <div>
                       <span>Date:</span> {new Date(r.incident_date).toLocaleDateString()}
                     </div>
                     {r.suspension_start_date && (
-                      <div className="text-rose-300/80">
+                      <div className="text-rose-600 dark:text-rose-400 font-medium">
                         Suspension: {new Date(r.suspension_start_date).toLocaleDateString()} —{' '}
                         {r.suspension_end_date ? new Date(r.suspension_end_date).toLocaleDateString() : 'Indefinite'}
                       </div>
@@ -250,12 +248,12 @@ export default function LFODisciplinaryPage() {
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-800 shrink-0">
+                <div className="flex items-center gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 border-border shrink-0">
                   {r.clearance_status !== 'cleared' && (
                     <button
                       onClick={() => handleQuickClear(r.id)}
                       disabled={clearingId === r.id}
-                      className="h-9 px-3.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="h-9 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>Grant Clearance</span>
@@ -267,7 +265,7 @@ export default function LFODisciplinaryPage() {
                       setSelectedRecord(r);
                       setIsModalOpen(true);
                     }}
-                    className="h-9 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
+                    className="h-9 px-3 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     <span>Edit</span>
@@ -275,8 +273,7 @@ export default function LFODisciplinaryPage() {
 
                   <button
                     onClick={() => handleDelete(r.id)}
-                    className="h-9 w-9 rounded-xl bg-slate-800 hover:bg-rose-900 text-slate-400 hover:text-rose-300 transition flex items-center justify-center cursor-pointer"
-                    title="Delete Record"
+                    className="h-9 px-3 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -287,7 +284,7 @@ export default function LFODisciplinaryPage() {
         )}
       </div>
 
-      {/* Form Modal */}
+      {/* Disciplinary Form Modal */}
       <DisciplinaryRecordFormModal
         isOpen={isModalOpen}
         onClose={() => {

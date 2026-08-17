@@ -9,7 +9,6 @@ import {
   Check,
   Loader2,
   Sparkles,
-  ShieldCheck,
   AlertTriangle,
   User,
   Phone,
@@ -105,15 +104,15 @@ export default function CompleteStudentProfilePage({
 
       router.push(`/counselor/students/${studentId}`);
     } catch {
-      setErrorMsg('Network error occurred.');
+      setErrorMsg('A network error occurred.');
       setSaving(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+      <div className="p-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-gabay-green" />
         <span className="text-xs">Loading student stub details...</span>
       </div>
     );
@@ -124,28 +123,28 @@ export default function CompleteStudentProfilePage({
       {/* Back Link */}
       <Link
         href="/counselor/students"
-        className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition"
+        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Back to Assigned Students</span>
+        <span>Back to Assigned Caseload</span>
       </Link>
 
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-xs font-semibold mb-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold mb-2">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Student Stub Profile Completion</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
           Complete Profile: {student?.first_name} {student?.last_name}
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Capture the mandatory student face photo for enrollment ID verification and fill out demographic details.
         </p>
       </div>
 
       {errorMsg && (
-        <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
+        <div className="p-3.5 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -153,20 +152,20 @@ export default function CompleteStudentProfilePage({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* MANDATORY PHOTO CAPTURE CARD */}
-        <div className="p-6 rounded-3xl bg-slate-900/90 border-2 border-dashed border-amber-500/40 backdrop-blur shadow-xl space-y-4">
+        <div className="p-6 rounded-3xl bg-card border-2 border-dashed border-amber-500/40 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center border border-amber-500/30">
                 <Camera className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Student Face Photo (Mandatory)</h3>
-                <p className="text-xs text-slate-400">Required for Enrollment Officer Identity Verification</p>
+                <h3 className="text-sm font-bold text-foreground">Student Face Photo (Mandatory)</h3>
+                <p className="text-xs text-muted-foreground">Required for Enrollment Officer Identity Verification</p>
               </div>
             </div>
 
             {capturedPhoto && (
-              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1">
                 <Check className="w-3.5 h-3.5" />
                 <span>Photo Verified</span>
               </span>
@@ -175,7 +174,7 @@ export default function CompleteStudentProfilePage({
 
           <div className="flex flex-col sm:flex-row items-center gap-5 pt-2">
             {/* Photo Preview Thumbnail */}
-            <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-2xl bg-slate-950 border-2 border-slate-700 overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
+            <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-2xl bg-muted border-2 border-border overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
               {capturedPhoto ? (
                 <img
                   src={capturedPhoto.previewUrl}
@@ -183,30 +182,30 @@ export default function CompleteStudentProfilePage({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="text-center p-3 text-slate-500">
+                <div className="text-center p-3 text-muted-foreground">
                   <User className="w-10 h-10 mx-auto mb-1 opacity-50" />
-                  <span className="text-[10px] uppercase font-bold text-amber-400/80">No Photo</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">No Photo</span>
                 </div>
               )}
             </div>
 
             {/* Shutter Trigger & Compression Stats */}
             <div className="space-y-3 flex-1 text-center sm:text-left">
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Position student face clearly within the camera oval guide. Photo will be automatically compressed to under 200KB WebP.
               </p>
 
               <button
                 type="button"
                 onClick={() => setIsCameraOpen(true)}
-                className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center justify-center sm:justify-start gap-2 transition shadow-lg shadow-blue-600/30 active:scale-95 cursor-pointer"
+                className="h-11 px-5 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white text-xs font-semibold flex items-center justify-center sm:justify-start gap-2 transition shadow-sm active:scale-95 cursor-pointer"
               >
                 <Camera className="w-4 h-4" />
                 <span>{capturedPhoto ? 'Retake Student Photo' : 'Launch Camera to Capture Photo'}</span>
               </button>
 
               {capturedPhoto && (
-                <div className="text-[11px] text-emerald-400 font-mono">
+                <div className="text-[11px] text-gabay-green font-mono">
                   Compressed: {capturedPhoto.compressedSizeKB} KB (Saved {(1 - capturedPhoto.compressedSizeKB / (capturedPhoto.originalSizeKB || 1)) * 100 | 0}%)
                 </div>
               )}
@@ -215,16 +214,16 @@ export default function CompleteStudentProfilePage({
         </div>
 
         {/* DEMOGRAPHIC FORM CARD */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 backdrop-blur shadow-xl space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-slate-800 pb-3">
+        <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-foreground border-b border-border pb-3">
             Demographic & DepEd Information
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* LRN */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                <CreditCard className="w-3.5 h-3.5 text-blue-400" />
+              <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-gabay-green" />
                 <span>12-Digit LRN (Learner Reference Number)</span>
               </label>
               <input
@@ -233,32 +232,32 @@ export default function CompleteStudentProfilePage({
                 maxLength={12}
                 onChange={(e) => setLrn(e.target.value.replace(/\D/g, ''))}
                 placeholder="e.g. 109283746501"
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm font-mono focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
 
             {/* Birthdate */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-blue-400" />
+              <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-gabay-green" />
                 <span>Date of Birth</span>
               </label>
               <input
                 type="date"
                 value={birthdate}
                 onChange={(e) => setBirthdate(e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Gender</label>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">Gender</label>
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full h-11 px-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="w-full h-11 px-3.5 rounded-xl bg-card border border-border text-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -266,11 +265,11 @@ export default function CompleteStudentProfilePage({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Grade Level</label>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">Grade Level</label>
               <select
                 value={gradeLevel}
                 onChange={(e) => setGradeLevel(e.target.value)}
-                className="w-full h-11 px-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="w-full h-11 px-3.5 rounded-xl bg-card border border-border text-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               >
                 <option value="7">Grade 7</option>
                 <option value="8">Grade 8</option>
@@ -282,20 +281,20 @@ export default function CompleteStudentProfilePage({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Section</label>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">Section</label>
               <input
                 type="text"
                 value={section}
                 onChange={(e) => setSection(e.target.value)}
                 placeholder="e.g. Mabini"
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Parent / Guardian Full Name
               </label>
               <input
@@ -303,13 +302,13 @@ export default function CompleteStudentProfilePage({
                 value={guardianName}
                 onChange={(e) => setGuardianName(e.target.value)}
                 placeholder="e.g. Elena Dela Cruz"
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-blue-400" />
+              <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-gabay-green" />
                 <span>Emergency Contact Number</span>
               </label>
               <input
@@ -317,7 +316,7 @@ export default function CompleteStudentProfilePage({
                 value={guardianContact}
                 onChange={(e) => setGuardianContact(e.target.value)}
                 placeholder="e.g. 09171234567"
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
           </div>
@@ -327,7 +326,7 @@ export default function CompleteStudentProfilePage({
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             href="/counselor/students"
-            className="h-12 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center transition"
+            className="h-12 px-6 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center transition shadow-xs"
           >
             Cancel
           </Link>
@@ -335,12 +334,12 @@ export default function CompleteStudentProfilePage({
           <button
             type="submit"
             disabled={saving || !capturedPhoto}
-            className="h-12 px-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 transition shadow-xl shadow-emerald-600/30 active:scale-95 cursor-pointer"
+            className="h-12 px-8 rounded-xl bg-gabay-green hover:bg-gabay-green-600 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 transition shadow-sm active:scale-95 cursor-pointer"
           >
             {saving ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Saving to Bucket & Database...</span>
+                <span>Saving to Caseload...</span>
               </>
             ) : (
               <>
