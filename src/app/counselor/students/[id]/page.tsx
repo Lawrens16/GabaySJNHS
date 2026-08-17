@@ -197,11 +197,11 @@ export default function StudentDetailPage({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap md:flex-col gap-2.5 shrink-0">
+        <div className="flex flex-wrap md:flex-col gap-2 shrink-0 w-full sm:w-auto">
           {isStub ? (
             <Link
               href={`/counselor/students/${student.id}/complete-profile`}
-              className="h-11 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition shadow-sm active:scale-95"
+              className="h-9 sm:h-10 px-3.5 sm:px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 flex-1 sm:flex-initial"
             >
               <Camera className="w-4 h-4" />
               <span>Capture Photo & Complete</span>
@@ -210,26 +210,26 @@ export default function StudentDetailPage({
             <>
               <button
                 onClick={() => setIsDirectNoteOpen(true)}
-                className="h-11 px-5 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm active:scale-95 cursor-pointer"
+                className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer flex-1 sm:flex-initial"
               >
-                <Edit3 className="w-4 h-4" />
+                <Edit3 className="w-3.5 h-3.5" />
                 <span>Write Direct Note</span>
               </button>
 
               <button
                 onClick={() => setIsCameraOpen(true)}
-                className="h-11 px-5 rounded-xl bg-gabay-navy hover:bg-gabay-navy-800 text-white text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm active:scale-95 cursor-pointer"
+                className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl bg-gabay-navy hover:bg-gabay-navy-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer flex-1 sm:flex-initial"
               >
-                <Camera className="w-4 h-4" />
-                <span>Scan Physical Note (OCR)</span>
+                <Camera className="w-3.5 h-3.5" />
+                <span>Scan Note (OCR)</span>
               </button>
 
               <button
                 onClick={() => setIsScheduleOpen(true)}
-                className="h-11 px-5 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-xs"
+                className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs flex-1 sm:flex-initial"
               >
-                <Calendar className="w-4 h-4 text-gabay-green" />
-                <span>Schedule a Session</span>
+                <Calendar className="w-3.5 h-3.5 text-gabay-green" />
+                <span>Schedule Session</span>
               </button>
             </>
           )}
