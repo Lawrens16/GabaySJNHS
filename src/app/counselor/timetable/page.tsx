@@ -361,14 +361,12 @@ export default function CounselorTimetablePage() {
                         }`}
                       >
                         {/* Time & Student Details */}
-                        <div className="flex items-start sm:items-center gap-3 min-w-0">
-                          {/* Time Badge - Mobile Responsive */}
-                          <div className="flex flex-col items-center justify-center w-13 h-13 sm:w-15 sm:h-15 rounded-xl bg-accent text-accent-foreground border border-gabay-green/25 shrink-0 shadow-xs">
-                            <span className="text-xs font-bold text-foreground leading-tight">
-                              {timeFormatted.split(' ')[0]}
-                            </span>
-                            <span className="text-[9px] text-gabay-green uppercase font-semibold">
-                              {timeFormatted.split(' ')[1]}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
+                          {/* Expanded Time Pill */}
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-accent-foreground border border-gabay-green/25 shrink-0 shadow-xs self-start sm:self-center">
+                            <Clock className="w-3.5 h-3.5 text-gabay-green shrink-0" />
+                            <span className="text-xs sm:text-sm font-bold text-foreground whitespace-nowrap tracking-tight font-mono">
+                              {timeFormatted}
                             </span>
                           </div>
 
