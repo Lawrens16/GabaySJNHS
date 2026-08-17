@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserPlus, ArrowLeft, HeartHandshake, Check, Loader2, Sparkles } from 'lucide-react';
 import { Profile } from '@/types/database.types';
 
 export default function NewStudentStubPage() {
-  const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [middleName, setMiddleName] = useState('');
@@ -93,7 +91,7 @@ export default function NewStudentStubPage() {
       {/* Back Link */}
       <Link
         href="/lfo/dashboard"
-        className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition"
+        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to LFO Dashboard</span>
@@ -101,35 +99,35 @@ export default function NewStudentStubPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
           Dispatch New Student Stub
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Create a minimal student record stub. The assigned Guidance Counselor will capture the face photo and complete the profile.
         </p>
       </div>
 
       {/* Messages */}
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+        <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs">
           {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {/* Form Card */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 backdrop-blur shadow-2xl">
+      <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-md">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 First Name *
               </label>
               <input
@@ -138,12 +136,12 @@ export default function NewStudentStubPage() {
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="e.g. Maria"
                 required
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Last Name *
               </label>
               <input
@@ -152,14 +150,14 @@ export default function NewStudentStubPage() {
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="e.g. Santos"
                 required
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Middle Name (Optional)
               </label>
               <input
@@ -167,18 +165,18 @@ export default function NewStudentStubPage() {
                 value={middleName}
                 onChange={(e) => setMiddleName(e.target.value)}
                 placeholder="e.g. Dela Cruz"
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Gender
               </label>
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground text-sm font-medium focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -189,13 +187,13 @@ export default function NewStudentStubPage() {
           {/* Academic Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Grade Level
               </label>
               <select
                 value={gradeLevel}
                 onChange={(e) => setGradeLevel(e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground text-sm font-medium focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               >
                 <option value="7">Grade 7</option>
                 <option value="8">Grade 8</option>
@@ -207,7 +205,7 @@ export default function NewStudentStubPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Section (Optional)
               </label>
               <input
@@ -215,22 +213,22 @@ export default function NewStudentStubPage() {
                 value={section}
                 onChange={(e) => setSection(e.target.value)}
                 placeholder="e.g. Rizal, STEM-A"
-                className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+                className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
             </div>
           </div>
 
           {/* Assign Guidance Counselor */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <HeartHandshake className="w-3.5 h-3.5 text-blue-400" />
+            <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+              <HeartHandshake className="w-3.5 h-3.5 text-gabay-green" />
               <span>Assign Guidance Counselor *</span>
             </label>
             <select
               value={assignedCounselorId}
               onChange={(e) => setAssignedCounselorId(e.target.value)}
               required
-              className="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+              className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground text-sm font-medium focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
             >
               {counselors.length === 0 ? (
                 <option value="">No approved counselors found</option>
@@ -245,10 +243,10 @@ export default function NewStudentStubPage() {
           </div>
 
           {/* Info Notice */}
-          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2">
-            <Sparkles className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
-            <p className="leading-relaxed">
-              Once created, this student will appear in the assigned counselor&apos;s workspace as an <strong>Incomplete Profile Stub</strong> requiring a mandatory face photo.
+          <div className="p-3.5 rounded-2xl bg-accent text-accent-foreground border border-gabay-green/20 text-xs flex items-start gap-2">
+            <Sparkles className="w-4 h-4 mt-0.5 shrink-0 text-gabay-green" />
+            <p className="leading-relaxed text-[11px]">
+              Once created, this student will appear in the assigned counselor&apos;s caseload as an <strong>Incomplete Profile Stub</strong> requiring a mandatory face photo.
             </p>
           </div>
 
@@ -256,7 +254,7 @@ export default function NewStudentStubPage() {
           <div className="pt-2 flex items-center justify-end gap-3">
             <Link
               href="/lfo/dashboard"
-              className="h-11 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center transition"
+              className="h-11 px-5 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center transition shadow-xs"
             >
               Cancel
             </Link>
@@ -264,7 +262,7 @@ export default function NewStudentStubPage() {
             <button
               type="submit"
               disabled={loading}
-              className="h-11 px-6 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition shadow-lg shadow-amber-600/30 cursor-pointer active:scale-95"
+              className="h-11 px-6 rounded-xl bg-gabay-navy hover:bg-gabay-navy-800 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition shadow-sm cursor-pointer active:scale-95"
             >
               {loading ? (
                 <>

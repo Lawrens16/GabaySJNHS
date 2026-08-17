@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  ShieldCheck,
   UserPlus,
   ShieldAlert,
   Users,
   Clock,
-  ArrowRight,
   CheckCircle2,
   RefreshCw,
   Loader2
@@ -57,10 +55,10 @@ export default function LFODashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
             Learner Formation & Disciplinary Hub
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Dispatch student stubs to Guidance Counselors and manage campus disciplinary records.
           </p>
         </div>
@@ -69,7 +67,7 @@ export default function LFODashboardPage() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="h-10 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer"
+            className="h-10 px-3.5 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -77,7 +75,7 @@ export default function LFODashboardPage() {
 
           <Link
             href="/lfo/students/new"
-            className="h-10 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-2 transition shadow-lg shadow-amber-600/30 active:scale-95"
+            className="h-10 px-4 rounded-xl bg-gabay-navy hover:bg-gabay-navy-800 text-white text-xs font-semibold flex items-center gap-2 transition shadow-sm active:scale-95"
           >
             <UserPlus className="w-4 h-4" />
             <span>Dispatch Stub</span>
@@ -87,76 +85,76 @@ export default function LFODashboardPage() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3">
+        <div className="p-5 rounded-2xl bg-card border border-border shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-accent text-gabay-green flex items-center justify-center mb-3">
             <Users className="w-5 h-5" />
           </div>
-          <div className="text-2xl font-bold text-white">{students.length}</div>
-          <div className="text-xs text-slate-400 font-medium mt-1">Total Enrolled Students</div>
+          <div className="text-2xl font-bold text-foreground">{students.length}</div>
+          <div className="text-xs text-muted-foreground font-medium mt-1">Total Enrolled Students</div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-3">
+        <div className="p-5 rounded-2xl bg-card border border-border shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
             <Clock className="w-5 h-5" />
           </div>
-          <div className="text-2xl font-bold text-amber-300">{stubsCount}</div>
-          <div className="text-xs text-slate-400 font-medium mt-1">Incomplete Stubs (Counselor Action)</div>
+          <div className="text-2xl font-bold text-amber-700 dark:text-amber-300">{stubsCount}</div>
+          <div className="text-xs text-muted-foreground font-medium mt-1">Incomplete Stubs (Counselor Action)</div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+        <div className="p-5 rounded-2xl bg-card border border-border shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
             <CheckCircle2 className="w-5 h-5" />
           </div>
-          <div className="text-2xl font-bold text-emerald-300">{completedCount}</div>
-          <div className="text-xs text-slate-400 font-medium mt-1">Complete Profiles (Photos Verified)</div>
+          <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{completedCount}</div>
+          <div className="text-xs text-muted-foreground font-medium mt-1">Complete Profiles (Photos Verified)</div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-          <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center mb-3">
+        <div className="p-5 rounded-2xl bg-card border border-border shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-destructive/15 text-destructive flex items-center justify-center mb-3">
             <ShieldAlert className="w-5 h-5" />
           </div>
-          <div className="text-2xl font-bold text-rose-300">{activeSuspensionCount}</div>
-          <div className="text-xs text-slate-400 font-medium mt-1">Active Suspensions / Holds</div>
+          <div className="text-2xl font-bold text-destructive">{activeSuspensionCount}</div>
+          <div className="text-xs text-muted-foreground font-medium mt-1">Active Suspensions / Holds</div>
         </div>
       </div>
 
       {/* Two-Column Grid: Recent Stubs vs. Recent Disciplinary Records */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Recent Student Stubs */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-card border border-border flex flex-col justify-between shadow-xs">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-blue-400" />
+            <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
+              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <UserPlus className="w-4 h-4 text-gabay-green" />
                 <span>Recently Dispatched Stubs</span>
               </h2>
-              <Link href="/lfo/students/new" className="text-xs text-blue-400 hover:text-blue-300 font-semibold">
+              <Link href="/lfo/students/new" className="text-xs text-gabay-green hover:underline font-semibold">
                 + New Stub
               </Link>
             </div>
 
             <div className="space-y-2.5">
               {loading ? (
-                <div className="p-8 text-center text-xs text-slate-400">
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto mb-1" />
+                <div className="p-8 text-center text-xs text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto mb-1 text-gabay-green" />
                   Loading...
                 </div>
               ) : students.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-500">No students dispatched yet.</div>
+                <div className="p-8 text-center text-xs text-muted-foreground">No students dispatched yet.</div>
               ) : (
                 students.slice(0, 5).map((s) => (
                   <div
                     key={s.id}
-                    className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-between"
+                    className="p-3 rounded-xl bg-muted/50 border border-border flex items-center justify-between shadow-xs"
                   >
                     <div>
-                      <div className="text-xs font-bold text-white">
+                      <div className="text-xs font-bold text-foreground">
                         {s.first_name} {s.last_name}
                       </div>
-                      <div className="text-[11px] text-slate-400">
+                      <div className="text-[11px] text-muted-foreground">
                         {s.grade_level ? `Grade ${s.grade_level} - ${s.section || ''}` : 'No Grade Set'}{' '}
                         • Assigned:{' '}
-                        <span className="text-blue-300 font-semibold">
+                        <span className="text-gabay-navy dark:text-blue-400 font-semibold">
                           {s.assigned_counselor?.full_name || 'Unassigned'}
                         </span>
                       </div>
@@ -164,8 +162,8 @@ export default function LFODashboardPage() {
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                         s.profile_status === 'stub'
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                          : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
                       }`}
                     >
                       {s.profile_status}
@@ -178,47 +176,47 @@ export default function LFODashboardPage() {
         </div>
 
         {/* Right Column: Recent Disciplinary Records */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-card border border-border flex flex-col justify-between shadow-xs">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-rose-400" />
+            <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
+              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                 <span>Disciplinary Incidents</span>
               </h2>
-              <Link href="/lfo/disciplinary" className="text-xs text-rose-400 hover:text-rose-300 font-semibold">
+              <Link href="/lfo/disciplinary" className="text-xs text-rose-600 dark:text-rose-400 hover:underline font-semibold">
                 Manage All →
               </Link>
             </div>
 
             <div className="space-y-2.5">
               {loading ? (
-                <div className="p-8 text-center text-xs text-slate-400">
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto mb-1" />
+                <div className="p-8 text-center text-xs text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto mb-1 text-rose-500" />
                   Loading...
                 </div>
               ) : records.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-500">No disciplinary violations logged.</div>
+                <div className="p-8 text-center text-xs text-muted-foreground">No disciplinary violations logged.</div>
               ) : (
                 records.slice(0, 5).map((r) => (
                   <div
                     key={r.id}
-                    className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-between"
+                    className="p-3 rounded-xl bg-muted/50 border border-border flex items-center justify-between shadow-xs"
                   >
                     <div>
-                      <div className="text-xs font-bold text-white">
+                      <div className="text-xs font-bold text-foreground">
                         {r.student ? `${r.student.first_name} ${r.student.last_name}` : 'Student'}
                       </div>
-                      <div className="text-[11px] text-slate-400 truncate max-w-[240px]">
+                      <div className="text-[11px] text-muted-foreground truncate max-w-[240px]">
                         {r.offense_description}
                       </div>
                     </div>
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                         r.clearance_status === 'cleared'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
                           : r.is_suspended
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          ? 'bg-destructive/20 text-destructive border border-destructive/30'
+                          : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                       }`}
                     >
                       {r.is_suspended && r.clearance_status !== 'cleared' ? 'Suspended' : r.clearance_status}

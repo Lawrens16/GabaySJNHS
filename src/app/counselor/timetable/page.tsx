@@ -1,24 +1,100 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  Calendar as CalendarIcon,
   Clock,
   Plus,
-  AlertCircle,
   CheckCircle2,
   ChevronRight,
   RefreshCw,
   Loader2,
-  HeartHandshake,
-  UserCheck,
   Camera,
   Check,
-  CalendarCheck
+  CalendarDays,
+  Calendar,
+  CalendarCheck2,
+  User,
+  Filter,
 } from 'lucide-react';
 import SessionModal from '@/components/counselor/SessionModal';
 import { CounselingSession, Student } from '@/types/database.types';
+
+type FilterTab = 'upcoming' | 'today' | 'tomorrow' | 'week' | 'past';
+
+function getDateKey(isoDate: string) {
+  const d = new Date(isoDate);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function getRelativeDateInfo(isoDate: string) {
+  const target = new Date(isoDate);
+  const now = new Date();
+
+  const targetDateOnly = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const todayDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diffDays = Math.round((targetDateOnly.getTime() - todayDateOnly.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return {
+      label: 'Today',
+      badgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+      isToday: true,
+      isTomorrow: false,
+      isUpcoming: true,
+      diffDays,
+    };
+  }
+  if (diffDays === 1) {
+    return {
+      label: 'Tomorrow',
+      badgeClass: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30',
+      isToday: false,
+      isTomorrow: true,
+      isUpcoming: true,
+      diffDays,
+    };
+  }
+  if (diffDays === -1) {
+    return {
+      label: 'Yesterday',
+      badgeClass: 'bg-muted text-muted-foreground border-border',
+      isToday: false,
+      isTomorrow: false,
+      isUpcoming: false,
+      diffDays,
+    };
+  }
+  if (diffDays < -1) {
+    return {
+      label: `${Math.abs(diffDays)} days ago`,
+      badgeClass: 'bg-muted text-muted-foreground border-border',
+      isToday: false,
+      isTomorrow: false,
+      isUpcoming: false,
+      diffDays,
+    };
+  }
+  if (diffDays <= 7) {
+    return {
+      label: `In ${diffDays} days`,
+      badgeClass: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30',
+      isToday: false,
+      isTomorrow: false,
+      isUpcoming: true,
+      diffDays,
+    };
+  }
+  return {
+    label: target.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    badgeClass: 'bg-accent text-accent-foreground border-border',
+    isToday: false,
+    isTomorrow: false,
+    isUpcoming: true,
+    diffDays,
+  };
+}
 
 export default function CounselorTimetablePage() {
   const [sessions, setSessions] = useState<CounselingSession[]>([]);
@@ -27,6 +103,7 @@ export default function CounselorTimetablePage() {
   const [loading, setLoading] = useState(true);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('upcoming');
 
   const fetchTimetable = async () => {
     setLoading(true);
@@ -75,35 +152,76 @@ export default function CounselorTimetablePage() {
     }
   };
 
+  // Filter sessions based on active tab
+  const filteredSessions = useMemo(() => {
+    const now = new Date();
+    const todayDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    return sessions.filter((session) => {
+      const sessionDate = new Date(session.scheduled_at);
+      const sessionDateOnly = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate());
+      const diffDays = Math.round((sessionDateOnly.getTime() - todayDateOnly.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (activeFilter === 'today') return diffDays === 0;
+      if (activeFilter === 'tomorrow') return diffDays === 1;
+      if (activeFilter === 'week') return diffDays >= 0 && diffDays <= 7;
+      if (activeFilter === 'past') return diffDays < 0 || session.status === 'completed';
+      // 'upcoming': all scheduled sessions from today onward (or not completed)
+      return diffDays >= 0 && session.status !== 'completed';
+    });
+  }, [sessions, activeFilter]);
+
+  // Group filtered sessions by date
+  const groupedSessions = useMemo(() => {
+    const groups: { [dateKey: string]: { date: Date; sessions: CounselingSession[] } } = {};
+
+    filteredSessions.forEach((session) => {
+      const key = getDateKey(session.scheduled_at);
+      if (!groups[key]) {
+        groups[key] = {
+          date: new Date(session.scheduled_at),
+          sessions: [],
+        };
+      }
+      groups[key].sessions.push(session);
+    });
+
+    // Sort group dates chronologically
+    return Object.keys(groups)
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      .map((key) => groups[key]);
+  }, [filteredSessions]);
+
   const todayStr = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
+    weekday: 'short',
+    month: 'short',
     day: 'numeric',
-    year: 'numeric',
   });
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-6">
-      {/* Page Title & Today Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="p-3 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-300 text-xs font-semibold mb-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            <span>{todayStr}</span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent text-accent-foreground border border-gabay-green/20 text-[11px] font-semibold mb-1 shadow-xs">
+            <Clock className="w-3 h-3 text-gabay-green" />
+            <span>Today: {todayStr}</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Today&apos;s Counseling Timetable
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+            Counseling Schedule & Timetable
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Immediate daily appointments and scheduled counseling evaluations.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage upcoming appointments, tomorrow&apos;s schedule, and weekly counseling caseload.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Header Actions - Mobile Optimized */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={fetchTimetable}
             disabled={loading}
-            className="h-10 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer"
+            className="h-9 px-3 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+            title="Refresh Schedule"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -111,9 +229,9 @@ export default function CounselorTimetablePage() {
 
           <button
             onClick={() => setIsScheduleOpen(true)}
-            className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-2 transition shadow-lg shadow-blue-600/30 active:scale-95 cursor-pointer"
+            className="h-9 px-3.5 sm:px-4 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm active:scale-95 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
             <span>Schedule Session</span>
           </button>
         </div>
@@ -121,159 +239,218 @@ export default function CounselorTimetablePage() {
 
       {/* Action Required: Incomplete Stubs Banner */}
       {pendingStubsCount > 0 && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
-              <Camera className="w-5 h-5" />
+        <div className="p-3 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-xs">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+              <Camera className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-bold text-white">
+              <div className="text-xs font-bold text-foreground">
                 Action Required: {pendingStubsCount} Incomplete Student {pendingStubsCount === 1 ? 'Stub' : 'Stubs'}
               </div>
-              <p className="text-[11px] text-amber-300/80 leading-tight mt-0.5">
-                New stubs dispatched by LFO require mandatory student face photo capture before enrollment.
+              <p className="text-[11px] opacity-90 leading-tight">
+                Stubs dispatched by LFO require face photo capture before enrollment clearance.
               </p>
             </div>
           </div>
 
           <Link
             href="/counselor/students?status=stub"
-            className="h-9 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shrink-0 active:scale-95"
+            className="h-8 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1 transition shrink-0 active:scale-95 shadow-xs"
           >
-            <span>Complete Profiles</span>
-            <ChevronRight className="w-4 h-4" />
+            <span>Complete</span>
+            <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       )}
 
-      {/* Timetable Appointments Stream */}
-      <div className="space-y-3.5">
-        {loading ? (
-          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3 bg-slate-900/50 rounded-2xl border border-slate-800">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
-            <span className="text-xs">Loading today&apos;s scheduled sessions...</span>
+      {/* Filter Tabs Bar - Mobile Touch Scroll */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar p-1 bg-card border border-border rounded-2xl shadow-xs">
+        {[
+          { id: 'upcoming', label: 'All Upcoming' },
+          { id: 'today', label: 'Today' },
+          { id: 'tomorrow', label: 'Tomorrow' },
+          { id: 'week', label: 'Next 7 Days' },
+          { id: 'past', label: 'Completed / Past' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveFilter(tab.id as FilterTab)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+              activeFilter === tab.id
+                ? 'bg-gabay-green text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Grouped Timetable Stream */}
+      {loading ? (
+        <div className="p-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-3 bg-card rounded-2xl border border-border">
+          <Loader2 className="w-6 h-6 animate-spin text-gabay-green" />
+          <span className="text-xs">Loading scheduled sessions...</span>
+        </div>
+      ) : groupedSessions.length === 0 ? (
+        <div className="p-8 sm:p-12 text-center text-muted-foreground bg-card rounded-3xl border border-border space-y-3 shadow-xs">
+          <CalendarCheck2 className="w-10 h-10 text-muted-foreground/60 mx-auto" />
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">No Sessions Found</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+              There are no appointments matching the &quot;{activeFilter}&quot; view.
+            </p>
           </div>
-        ) : sessions.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 bg-slate-900/50 rounded-3xl border border-slate-800 space-y-3">
-            <CalendarCheck className="w-10 h-10 text-slate-600 mx-auto" />
-            <div>
-              <h3 className="text-sm font-semibold text-white">No Appointments Scheduled for Today</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                You have an open schedule. Click &quot;Schedule Session&quot; to book an appointment with an assigned student.
-              </p>
-            </div>
-            <button
-              onClick={() => setIsScheduleOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md transition"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Book Appointment</span>
-            </button>
-          </div>
-        ) : (
-          sessions.map((session) => {
-            const timeFormatted = new Date(session.scheduled_at).toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
+          <button
+            onClick={() => setIsScheduleOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Schedule a Session</span>
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {groupedSessions.map((group) => {
+            const dateStr = group.date.toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
             });
-            const isCompleted = session.status === 'completed';
+            const rel = getRelativeDateInfo(group.date.toISOString());
 
             return (
-              <div
-                key={session.id}
-                className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                  isCompleted
-                    ? 'bg-slate-900/40 border-slate-800/60 opacity-80'
-                    : 'bg-slate-900/90 border-slate-800 hover:border-slate-700 shadow-md'
-                }`}
-              >
-                {/* Time & Student Details */}
-                <div className="flex items-start sm:items-center gap-3.5">
-                  {/* Time Badge */}
-                  <div className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl bg-blue-600/15 border border-blue-500/25 text-blue-300 shrink-0">
-                    <span className="text-xs font-bold">{timeFormatted.split(' ')[0]}</span>
-                    <span className="text-[10px] text-blue-400 uppercase font-semibold">
-                      {timeFormatted.split(' ')[1]}
+              <div key={getDateKey(group.date.toISOString())} className="space-y-2.5">
+                {/* Date Group Header Banner */}
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-gabay-green" />
+                    <h2 className="text-xs sm:text-sm font-bold text-foreground tracking-tight">
+                      {dateStr}
+                    </h2>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${rel.badgeClass}`}
+                    >
+                      {rel.label}
                     </span>
                   </div>
 
-                  {/* Student Info */}
-                  <div className="min-w-0">
-                    <div className="flex items-center flex-wrap gap-2">
-                      <Link
-                        href={`/counselor/students/${session.student_id}`}
-                        className="text-sm font-bold text-white hover:text-blue-400 transition"
-                      >
-                        {session.student?.first_name} {session.student?.last_name}
-                      </Link>
-
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          session.session_type === 'behavioral'
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                            : session.session_type === 'academic'
-                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        }`}
-                      >
-                        {session.session_type}
-                      </span>
-
-                      {session.student?.profile_status === 'stub' && (
-                        <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-500/30">
-                          Stub (No Photo)
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      {session.student?.grade_level
-                        ? `Grade ${session.student.grade_level} - ${session.student.section || 'General'}`
-                        : 'Demographics Pending'}{' '}
-                      • LRN: <span className="font-mono text-slate-300">{session.student?.lrn || 'Pending'}</span>
-                    </div>
-
-                    {session.summary_notes && (
-                      <p className="text-xs text-slate-400 italic mt-1 line-clamp-1">
-                        &quot;{session.summary_notes}&quot;
-                      </p>
-                    )}
-                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    {group.sessions.length} {group.sessions.length === 1 ? 'session' : 'sessions'}
+                  </span>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800 shrink-0">
-                  {session.status !== 'completed' ? (
-                    <button
-                      onClick={() => handleUpdateStatus(session.id, 'completed')}
-                      disabled={updatingId === session.id}
-                      className="h-9 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 text-emerald-300 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Mark Done</span>
-                    </button>
-                  ) : (
-                    <span className="px-3 py-1 rounded-xl bg-emerald-950/40 text-emerald-400 text-xs font-semibold border border-emerald-800/40 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Completed</span>
-                    </span>
-                  )}
+                {/* Session Cards for this Date */}
+                <div className="space-y-2.5">
+                  {group.sessions.map((session) => {
+                    const timeFormatted = new Date(session.scheduled_at).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    });
+                    const isCompleted = session.status === 'completed';
 
-                  <Link
-                    href={`/counselor/students/${session.student_id}`}
-                    className="h-9 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1 transition"
-                  >
-                    <span>View Profile</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
+                    return (
+                      <div
+                        key={session.id}
+                        className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs ${
+                          isCompleted
+                            ? 'bg-muted/40 border-border opacity-85'
+                            : 'bg-card border-border hover:border-gabay-green/40'
+                        }`}
+                      >
+                        {/* Time & Student Details */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
+                          {/* Expanded Time Pill */}
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-accent-foreground border border-gabay-green/25 shrink-0 shadow-xs self-start sm:self-center">
+                            <Clock className="w-3.5 h-3.5 text-gabay-green shrink-0" />
+                            <span className="text-xs sm:text-sm font-bold text-foreground whitespace-nowrap tracking-tight font-mono">
+                              {timeFormatted}
+                            </span>
+                          </div>
+
+                          {/* Student Info */}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center flex-wrap gap-1.5">
+                              <Link
+                                href={`/counselor/students/${session.student_id}`}
+                                className="text-xs sm:text-sm font-bold text-foreground hover:text-gabay-green transition truncate"
+                              >
+                                {session.student?.first_name} {session.student?.last_name}
+                              </Link>
+
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                  session.session_type === 'behavioral'
+                                    ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25'
+                                    : session.session_type === 'academic'
+                                    ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/25'
+                                    : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25'
+                                }`}
+                              >
+                                {session.session_type}
+                              </span>
+
+                              {session.student?.profile_status === 'stub' && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-300 text-[9px] font-bold border border-rose-500/25">
+                                  Stub
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              {session.student?.grade_level
+                                ? `Grade ${session.student.grade_level} - ${session.student.section || 'General'}`
+                                : 'Demographics Pending'}{' '}
+                              • LRN: <span className="font-mono text-foreground font-semibold">{session.student?.lrn || 'Pending'}</span>
+                            </div>
+
+                            {session.summary_notes && (
+                              <p className="text-[11px] text-muted-foreground italic mt-0.5 line-clamp-1">
+                                &quot;{session.summary_notes}&quot;
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-border shrink-0 self-end sm:self-auto">
+                          {session.status !== 'completed' ? (
+                            <button
+                              onClick={() => handleUpdateStatus(session.id, 'completed')}
+                              disabled={updatingId === session.id}
+                              className="h-8 px-2.5 sm:px-3 rounded-lg bg-accent hover:bg-gabay-green hover:text-white border border-gabay-green/30 text-gabay-green text-xs font-semibold transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                            >
+                              <Check className="w-3 h-3" />
+                              <span>Done</span>
+                            </button>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold border border-emerald-500/20 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Completed</span>
+                            </span>
+                          )}
+
+                          <Link
+                            href={`/counselor/students/${session.student_id}`}
+                            className="h-8 px-2.5 sm:px-3 rounded-lg bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-1 transition shadow-xs"
+                          >
+                            <span>Profile</span>
+                            <ChevronRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
-      {/* Schedule Modal */}
+      {/* Schedule Session Modal */}
       <SessionModal
         isOpen={isScheduleOpen}
         onClose={() => setIsScheduleOpen(false)}
