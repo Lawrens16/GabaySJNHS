@@ -11,6 +11,7 @@ import {
   Calendar,
   Save,
   RotateCcw,
+  RefreshCw,
   Info
 } from 'lucide-react';
 import { SessionType } from '@/types/database.types';
@@ -68,19 +69,19 @@ export default function OCRScanReviewModal({
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || 'OCR handwriting transcription could not connect.');
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || 'Automated OCR service could not process handwriting.');
       }
 
       const text = data.rawText || '';
       setOcrRawText(text);
       setEditedText(text || '');
+      setOcrFailedNotice(null);
     } catch (err: any) {
-      console.warn('OCR note:', err);
+      console.warn('OCR note warning:', err);
       setOcrFailedNotice(
-        'Automated handwriting recognition could not connect. Your photo is securely captured — you can type your notes manually below or proceed to save the photo.'
+        'Automated handwriting recognition service encountered a delay or is temporarily unreachable. You can click "Retry OCR", or continue by typing notes manually and saving the picture directly.'
       );
-      setEditedText('');
     } finally {
       setOcrLoading(false);
     }
@@ -213,13 +214,28 @@ export default function OCRScanReviewModal({
               </div>
             </div>
 
-            {/* OCR Fallback Notice if OCR service was unreachable */}
+            {/* OCR Fallback Notice if OCR service was unreachable with Retry button */}
             {ocrFailedNotice && (
-              <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/25 text-blue-800 dark:text-blue-300 text-xs flex items-start gap-2.5">
-                <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-600 dark:text-blue-400" />
-                <p className="text-[11px] leading-relaxed">
-                  {ocrFailedNotice}
-                </p>
+              <div className="p-3.5 rounded-2xl bg-accent text-accent-foreground border border-gabay-green/25 text-xs flex flex-col gap-2.5 shadow-xs">
+                <div className="flex items-start gap-2.5">
+                  <Info className="w-4 h-4 mt-0.5 shrink-0 text-gabay-green" />
+                  <p className="text-[11px] leading-relaxed">
+                    {ocrFailedNotice}
+                  </p>
+                </div>
+                {imageFile && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      disabled={ocrLoading}
+                      onClick={() => runOCR(imageFile)}
+                      className="h-8 px-3 rounded-lg bg-gabay-green hover:bg-gabay-green-600 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${ocrLoading ? 'animate-spin' : ''}`} />
+                      <span>{ocrLoading ? 'Retrying OCR...' : 'Retry OCR Transcription'}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -250,12 +266,24 @@ export default function OCRScanReviewModal({
                   <Edit3 className="w-3.5 h-3.5 text-gabay-green" />
                   <span>Transcribed Notes (Editable)</span>
                 </label>
-                {ocrLoading && (
-                  <span className="text-[11px] text-gabay-green flex items-center gap-1 animate-pulse">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    <span>Reading handwriting...</span>
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {imageFile && !ocrLoading && (
+                    <button
+                      type="button"
+                      onClick={() => runOCR(imageFile)}
+                      className="text-[11px] text-gabay-green hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Retry OCR</span>
+                    </button>
+                  )}
+                  {ocrLoading && (
+                    <span className="text-[11px] text-gabay-green flex items-center gap-1 animate-pulse">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Reading handwriting...</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               <textarea

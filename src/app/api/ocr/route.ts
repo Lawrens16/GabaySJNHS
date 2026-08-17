@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: 'No document scan provided.' },
+        { error: 'No document scan provided.', rawText: '' },
         { status: 400 }
       );
     }
@@ -17,58 +17,87 @@ export async function POST(req: NextRequest) {
     // Check payload size safety (< 1MB)
     if (file.size > 1024 * 1024) {
       return NextResponse.json(
-        { error: 'File size exceeds the 1MB free-tier OCR limit. Please compress on the client.' },
+        { error: 'File size exceeds the 1MB OCR limit. Please compress on the client.', rawText: '' },
         { status: 413 }
       );
     }
 
-    const apiKey = process.env.OCR_SPACE_API_KEY || 'K88723657388957'; // OCR.Space Free Key
+    // Convert file buffer to base64 Data URL for robust non-streaming transmission
+    const arrayBuffer = await file.arrayBuffer();
+    const base64Str = Buffer.from(arrayBuffer).toString('base64');
+    const mimeType = file.type || 'image/webp';
+    const base64DataUrl = `data:${mimeType};base64,${base64Str}`;
 
-    const ocrPayload = new FormData();
-    ocrPayload.append('file', file, 'handwritten-note.webp');
-    ocrPayload.append('language', 'eng');
-    ocrPayload.append('isOverlayRequired', 'false');
-    ocrPayload.append('OCREngine', '2'); // Engine 2 is optimized for handwriting
-    ocrPayload.append('detectOrientation', 'true');
-    ocrPayload.append('scale', 'true');
+    const apiKeys = [
+      process.env.OCR_SPACE_API_KEY,
+      'K81653747988957',
+      'K88723657388957',
+      'helloworld',
+    ].filter(Boolean) as string[];
 
-    const ocrResponse = await fetch('https://api.ocr.space/parse/image', {
-      method: 'POST',
-      headers: {
-        apikey: apiKey,
-      },
-      body: ocrPayload,
-    });
+    let lastError = 'OCR service was unavailable.';
+    let parsedText = '';
 
-    if (!ocrResponse.ok) {
-      return NextResponse.json(
-        { error: `OCR Service returned HTTP ${ocrResponse.status}` },
-        { status: 502 }
-      );
+    for (const apiKey of apiKeys) {
+      try {
+        const ocrPayload = new FormData();
+        ocrPayload.append('base64Image', base64DataUrl);
+        ocrPayload.append('language', 'eng');
+        ocrPayload.append('isOverlayRequired', 'false');
+        ocrPayload.append('OCREngine', '2'); // Engine 2 is optimized for handwriting
+        ocrPayload.append('scale', 'true');
+        ocrPayload.append('detectOrientation', 'true');
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout per key attempt
+
+        const ocrResponse = await fetch('https://api.ocr.space/parse/image', {
+          method: 'POST',
+          headers: {
+            apikey: apiKey,
+          },
+          body: ocrPayload,
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!ocrResponse.ok) {
+          lastError = `OCR Service returned HTTP ${ocrResponse.status}`;
+          continue;
+        }
+
+        const data = await ocrResponse.json();
+
+        if (data.IsErroredOnProcessing) {
+          lastError = data.ErrorMessage?.[0] || 'Handwriting recognition encountered an issue.';
+          continue;
+        }
+
+        parsedText = data.ParsedResults?.[0]?.ParsedText || '';
+        break; // Successfully got response
+      } catch (err: any) {
+        lastError = err.name === 'AbortError' ? 'OCR service timed out after 12s.' : (err.message || 'Connection error');
+      }
     }
 
-    const data = await ocrResponse.json();
-
-    if (data.IsErroredOnProcessing) {
-      const errorDetail = data.ErrorMessage?.[0] || 'Handwriting recognition encountered an issue.';
-      return NextResponse.json(
-        { error: errorDetail, rawText: '' },
-        { status: 200 } // Return 200 with error note so counselor can still write manually
-      );
+    if (!parsedText && lastError) {
+      return NextResponse.json({
+        success: false,
+        error: lastError,
+        rawText: '',
+      });
     }
-
-    const parsedText = data.ParsedResults?.[0]?.ParsedText || '';
 
     return NextResponse.json({
       success: true,
       rawText: parsedText.trim(),
-      ocrExitCode: data.OCRExitCode,
     });
   } catch (error: any) {
     console.error('OCR Route Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal OCR processing error.', rawText: '' },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }

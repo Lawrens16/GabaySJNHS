@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export async function GET(
   req: NextRequest,
@@ -42,9 +42,40 @@ export async function GET(
       return NextResponse.json({ error: 'Student not found.' }, { status: 404 });
     }
 
+    // Resolve secure signed URLs for all note attachments from the private counseling-documents bucket
+    const notesWithSignedUrls = await Promise.all(
+      (notesRes.data || []).map(async (note) => {
+        let resolvedImageUrl = note.image_url;
+
+        if (note.image_storage_path) {
+          const { data: signed } = await adminClient.storage
+            .from('counseling-documents')
+            .createSignedUrl(note.image_storage_path, 60 * 60 * 24); // 24 hours
+          if (signed?.signedUrl) {
+            resolvedImageUrl = signed.signedUrl;
+          }
+        } else if (note.image_url && note.image_url.includes('counseling-documents/')) {
+          const extractedPath = note.image_url.split('counseling-documents/').pop();
+          if (extractedPath) {
+            const { data: signed } = await adminClient.storage
+              .from('counseling-documents')
+              .createSignedUrl(extractedPath, 60 * 60 * 24);
+            if (signed?.signedUrl) {
+              resolvedImageUrl = signed.signedUrl;
+            }
+          }
+        }
+
+        return {
+          ...note,
+          image_url: resolvedImageUrl,
+        };
+      })
+    );
+
     return NextResponse.json({
       student: studentRes.data,
-      notes: notesRes.data || [],
+      notes: notesWithSignedUrls,
       sessions: sessionsRes.data || [],
       disciplinaryRecords: disciplinaryRes.data || [],
     });

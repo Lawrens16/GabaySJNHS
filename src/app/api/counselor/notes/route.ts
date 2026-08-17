@@ -60,8 +60,6 @@ export async function POST(req: NextRequest) {
     const counselorId = formData.get('counselorId') as string | null;
     const ocrRaw = (formData.get('ocrRaw') as string) || '';
     const counselorEdited = (formData.get('counselorEdited') as string) || '';
-    const sessionType = (formData.get('sessionType') as string) || 'routine';
-    const noteCategory = (formData.get('noteCategory') as string) || 'general';
 
     if (!studentId || !counselorEdited.trim()) {
       return NextResponse.json(
@@ -91,10 +89,10 @@ export async function POST(req: NextRequest) {
         });
 
       if (!storageError) {
-        const { data: urlData } = adminClient.storage
+        const { data: signedData } = await adminClient.storage
           .from('counseling-documents')
-          .getPublicUrl(storagePath);
-        imageUrl = urlData.publicUrl;
+          .createSignedUrl(storagePath, 60 * 60 * 24 * 365); // 1 year signed URL
+        imageUrl = signedData?.signedUrl || '';
       } else {
         imageUrl = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
       }
