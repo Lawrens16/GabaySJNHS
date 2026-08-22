@@ -27,6 +27,13 @@ export async function POST(
       );
     }
 
+    if (lrn && lrn.trim().length !== 12) {
+      return NextResponse.json(
+        { error: 'LRN must be exactly 12 digits.' },
+        { status: 400 }
+      );
+    }
+
     const adminClient = createAdminClient();
 
     // 1. Upload compressed face photo to Supabase Storage: student-avatars

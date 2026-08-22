@@ -9,7 +9,7 @@ const OFFICER_SECRET = new TextEncoder().encode(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Static and Public Route Bypasses
+  // 1. Static, API, and Public Route Bypasses
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/icons') ||
@@ -18,13 +18,12 @@ export async function middleware(request: NextRequest) {
     pathname === '/' ||
     pathname === '/login' ||
     pathname.startsWith('/auth/callback') ||
-    pathname.startsWith('/api/auth/officer-login') ||
-    pathname.startsWith('/api/auth/officer-logout')
+    pathname.startsWith('/api/')
   ) {
     return NextResponse.next();
   }
 
-  // 2. Seasonal Enrollment Officer Routes Gate (/officer/*)
+  // 2. Enrollment Officer Routes Gate (/officer/*)
   if (pathname.startsWith('/officer')) {
     if (pathname === '/officer/login') {
       return NextResponse.next();

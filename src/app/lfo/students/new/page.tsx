@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { UserPlus, ArrowLeft, HeartHandshake, Check, Loader2, Sparkles } from 'lucide-react';
+import { UserPlus, ArrowLeft, HeartHandshake, Check, Loader2, Sparkles, CreditCard } from 'lucide-react';
 import { Profile } from '@/types/database.types';
 
 export default function NewStudentStubPage() {
+  const [lrn, setLrn] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [middleName, setMiddleName] = useState('');
@@ -43,6 +44,11 @@ export default function NewStudentStubPage() {
       return;
     }
 
+    if (lrn.trim() && lrn.trim().length !== 12) {
+      setErrorMsg('Learner Reference Number (LRN) must be exactly 12 digits (or left blank for counselor to fill).');
+      return;
+    }
+
     try {
       setLoading(true);
       setErrorMsg(null);
@@ -51,6 +57,7 @@ export default function NewStudentStubPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          lrn: lrn.trim() || undefined,
           firstName,
           lastName,
           middleName,
@@ -71,6 +78,7 @@ export default function NewStudentStubPage() {
 
       setSuccessMsg(`Student stub for ${firstName} ${lastName} dispatched successfully!`);
       // Reset form
+      setLrn('');
       setFirstName('');
       setLastName('');
       setMiddleName('');
@@ -124,6 +132,32 @@ export default function NewStudentStubPage() {
       {/* Form Card */}
       <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-md">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* LRN Field */}
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-gabay-green" />
+                <span>12-Digit LRN (Optional at Stub Creation)</span>
+              </span>
+              <span className="text-[11px] font-normal text-muted-foreground font-mono">
+                {lrn.length}/12 digits
+              </span>
+            </label>
+            <input
+              type="text"
+              value={lrn}
+              maxLength={12}
+              onChange={(e) => setLrn(e.target.value.replace(/\D/g, ''))}
+              placeholder="e.g. 109283746501 (leave blank if unavailable)"
+              className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm font-mono focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
+            />
+            {lrn.length > 0 && lrn.length < 12 && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                LRN must be exactly 12 digits ({12 - lrn.length} remaining).
+              </p>
+            )}
+          </div>
+
           {/* Name Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

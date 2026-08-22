@@ -10,8 +10,10 @@ import {
   Loader2,
   RefreshCw,
   Search,
+  RotateCcw,
 } from 'lucide-react';
 import { Profile, UserRole, UserStatus } from '@/types/database.types';
+import RejectConfirmModal from '@/components/admin/RejectConfirmModal';
 
 export default function ApprovalQueuePage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -19,6 +21,11 @@ export default function ApprovalQueuePage() {
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Reject modal state
+  const [rejectTarget, setRejectTarget] = useState<Profile | null>(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectActionLabel, setRejectActionLabel] = useState('Reject Account');
 
   const fetchProfiles = useCallback(async () => {
     setLoading(true);
@@ -57,6 +64,20 @@ export default function ApprovalQueuePage() {
     } finally {
       setActionLoadingId(null);
     }
+  };
+
+  const openRejectModal = (user: Profile, label: string) => {
+    setRejectTarget(user);
+    setRejectActionLabel(label);
+    setRejectModalOpen(true);
+  };
+
+  const handleConfirmReject = async (userId: string) => {
+    await handleUpdateUser(userId, null, 'rejected');
+  };
+
+  const handleAllowReApplication = async (userId: string) => {
+    await handleUpdateUser(userId, null, 'pending');
   };
 
   const filteredProfiles = profiles.filter((p) => {
@@ -207,7 +228,7 @@ export default function ApprovalQueuePage() {
                     </button>
 
                     <button
-                      onClick={() => handleUpdateUser(user.id, null, 'rejected')}
+                      onClick={() => openRejectModal(user, 'Reject Account')}
                       disabled={actionLoadingId === user.id}
                       className="h-9 px-3 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/30 text-xs font-semibold transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
                     >
@@ -220,13 +241,25 @@ export default function ApprovalQueuePage() {
                     <span className="text-xs text-muted-foreground font-medium">
                       Role: <strong className="text-foreground uppercase">{user.role || 'None'}</strong>
                     </span>
+
                     {user.status === 'approved' && user.role !== 'admin' && (
                       <button
-                        onClick={() => handleUpdateUser(user.id, null, 'rejected')}
+                        onClick={() => openRejectModal(user, 'Revoke Access')}
                         disabled={actionLoadingId === user.id}
                         className="h-8 px-2.5 rounded-lg bg-card hover:bg-muted border border-border text-xs text-muted-foreground hover:text-destructive transition cursor-pointer"
                       >
                         Revoke Access
+                      </button>
+                    )}
+
+                    {user.status === 'rejected' && (
+                      <button
+                        onClick={() => handleAllowReApplication(user.id)}
+                        disabled={actionLoadingId === user.id}
+                        className="h-8 px-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-semibold transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Allow Re-Application</span>
                       </button>
                     )}
                   </div>
@@ -236,6 +269,15 @@ export default function ApprovalQueuePage() {
           ))
         )}
       </div>
+
+      {/* Reject Confirmation Modal */}
+      <RejectConfirmModal
+        isOpen={rejectModalOpen}
+        onClose={() => setRejectModalOpen(false)}
+        user={rejectTarget}
+        onConfirmReject={handleConfirmReject}
+        actionLabel={rejectActionLabel}
+      />
     </div>
   );
 }

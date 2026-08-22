@@ -63,7 +63,7 @@ export default function EnrollmentOfficersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-            Seasonal Enrollment Officers
+            Enrollment Officers
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
             Manage individualized station credentials (6-Digit PINs) with strictly audited 10-hour sessions.
@@ -101,7 +101,7 @@ export default function EnrollmentOfficersPage() {
           <div className="col-span-full p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border shadow-xs">
             <KeyRound className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2" />
             <h3 className="text-sm font-semibold text-foreground">No Enrollment Officers Provisioned</h3>
-            <p className="text-xs text-muted-foreground mt-1">Click &quot;Provision Officer&quot; above to create a seasonal credential pass.</p>
+            <p className="text-xs text-muted-foreground mt-1">Click &quot;Provision Officer&quot; above to create a credential pass.</p>
           </div>
         ) : (
           officers.map((officer) => {

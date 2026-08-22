@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     if (dbError || !officer) {
       return NextResponse.json(
-        { error: 'Invalid username or inactive seasonal account.' },
+        { error: 'Invalid username or inactive officer account.' },
         { status: 401 }
       );
     }
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     // Check expiration date
     if (new Date(officer.expires_at) <= new Date()) {
       return NextResponse.json(
-        { error: 'This seasonal account has expired. Please contact the IT Admin.' },
+        { error: 'This officer account has expired. Please contact the IT Admin.' },
         { status: 403 }
       );
     }

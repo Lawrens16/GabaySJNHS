@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
 
     if (query.trim()) {
       studentQuery = studentQuery.or(
-        `first_name.ilike.%${query}%,last_name.ilike.%${query}%,lrn.ilike.%${query}%`
+        `first_name.ilike.%${query}%,last_name.ilike.%${query}%,middle_name.ilike.%${query}%,lrn.ilike.%${query}%`
       );
     }
 

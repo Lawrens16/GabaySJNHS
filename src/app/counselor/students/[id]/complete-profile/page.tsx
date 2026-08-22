@@ -74,6 +74,11 @@ export default function CompleteStudentProfilePage({
       return;
     }
 
+    if (lrn.trim() && lrn.trim().length !== 12) {
+      setErrorMsg('Learner Reference Number (LRN) must be exactly 12 digits.');
+      return;
+    }
+
     try {
       setSaving(true);
       setErrorMsg(null);
@@ -222,9 +227,14 @@ export default function CompleteStudentProfilePage({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* LRN */}
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
-                <CreditCard className="w-3.5 h-3.5 text-gabay-green" />
-                <span>12-Digit LRN (Learner Reference Number)</span>
+              <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5 text-gabay-green" />
+                  <span>12-Digit LRN (Learner Reference Number)</span>
+                </span>
+                <span className="text-[11px] font-normal text-muted-foreground font-mono">
+                  {lrn.length}/12 digits
+                </span>
               </label>
               <input
                 type="text"
@@ -234,6 +244,11 @@ export default function CompleteStudentProfilePage({
                 placeholder="e.g. 109283746501"
                 className="w-full h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-sm font-mono focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
               />
+              {lrn.length > 0 && lrn.length < 12 && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                  LRN must be exactly 12 digits ({12 - lrn.length} remaining).
+                </p>
+              )}
             </div>
 
             {/* Birthdate */}
