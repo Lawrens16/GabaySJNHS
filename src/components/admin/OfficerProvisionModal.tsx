@@ -124,7 +124,7 @@ export default function OfficerProvisionModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-foreground">Provision Enrollment Officer</h3>
-              <p className="text-xs text-muted-foreground">Generate Seasonal 6-Digit PIN Pass</p>
+              <p className="text-xs text-muted-foreground">Generate 6-Digit PIN Pass</p>
             </div>
           </div>
           <button
@@ -199,7 +199,7 @@ export default function OfficerProvisionModal({
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-gabay-green" />
-                <span>Seasonal Expiration Date</span>
+                <span>Expiration Date</span>
               </label>
               <input
                 type="date"

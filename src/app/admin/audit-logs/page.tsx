@@ -108,7 +108,7 @@ export default function AdminAuditLogsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
-                      {log.officer?.full_name || 'Seasonal Officer'}
+                      {log.officer?.full_name || 'Enrollment Officer'}
                       <span className="ml-1.5 text-[10px] text-gabay-green font-mono">
                         (@{log.officer?.username || 'officer'})
                       </span>

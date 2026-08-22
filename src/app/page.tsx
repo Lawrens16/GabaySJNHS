@@ -33,10 +33,10 @@ export default function HomePage() {
 
           <Link
             href="/login"
-            className="h-10 px-4 sm:px-5 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
+            className="h-9 sm:h-10 px-2.5 sm:px-5 rounded-xl bg-gabay-green hover:bg-gabay-green-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
           >
             <LogIn className="w-4 h-4" />
-            <span>Staff Sign In</span>
+            <span className="hidden sm:inline">Staff Sign In</span>
           </Link>
         </div>
       </header>
@@ -192,7 +192,7 @@ export default function HomePage() {
                     <UserCheck className="w-6 h-6" />
                   </div>
                   <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
-                    Seasonal Staff
+                    Enrollment Staff
                   </span>
                 </div>
 
@@ -201,7 +201,7 @@ export default function HomePage() {
                     Enrollment Clearance Station
                   </h3>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Designed for seasonal enrollment desks. Simple 6-digit PIN login with student face photo verification and instant clearance indicators.
+                    Designed for enrollment desks. Simple 6-digit PIN login with student face photo verification and instant clearance indicators.
                   </p>
                 </div>
 
@@ -249,7 +249,7 @@ export default function HomePage() {
                     System Administration
                   </h3>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Approve incoming staff sign-in requests, manage seasonal enrollment officer credentials, and review station audit logs.
+                    Approve incoming staff sign-in requests, manage enrollment officer credentials, and review station audit logs.
                   </p>
                 </div>
 

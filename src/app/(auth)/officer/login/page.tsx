@@ -92,7 +92,7 @@ export default function OfficerLoginPage() {
               Enrollment Officer Station
             </h1>
             <p className="text-xs text-muted-foreground mt-1">
-              Seasonal Clearance & Student Photo Verification
+              Enrollment Clearance & Student Photo Verification
             </p>
           </div>
 

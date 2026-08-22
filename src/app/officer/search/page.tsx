@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, ShieldCheck, UserCheck, Loader2 } from 'lucide-react';
+import { Search, ShieldCheck, UserCheck, Loader2, AlertTriangle } from 'lucide-react';
 import StudentClearanceCard from '@/components/officer/StudentClearanceCard';
 import { Student } from '@/types/database.types';
 
@@ -9,15 +9,22 @@ export default function OfficerSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const fetchStudents = async (query = '') => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       const res = await fetch(`/api/officer/search?q=${encodeURIComponent(query)}`);
       const data = await res.json();
-      if (data.students) setStudents(data.students);
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Failed to load student records. Your session may have expired.');
+        setStudents([]);
+      } else {
+        setStudents(data.students || []);
+      }
     } catch {
-      // Ignore
+      setErrorMsg('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -30,6 +37,7 @@ export default function OfficerSearchPage() {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto w-full space-y-6">
@@ -66,6 +74,14 @@ export default function OfficerSearchPage() {
         </p>
       </div>
 
+      {/* Error Banner */}
+      {errorMsg && (
+        <div className="p-3.5 rounded-2xl bg-destructive/10 border border-destructive/25 text-xs flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+          <p className="text-destructive leading-relaxed">{errorMsg}</p>
+        </div>
+      )}
+
       {/* Results Stream */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground px-1">
@@ -85,11 +101,11 @@ export default function OfficerSearchPage() {
             <Loader2 className="w-6 h-6 animate-spin text-gabay-green" />
             <span className="text-xs">Searching student records...</span>
           </div>
-        ) : students.length === 0 ? (
+        ) : students.length === 0 && !errorMsg ? (
           <div className="p-12 text-center text-muted-foreground bg-card rounded-3xl border border-border shadow-xs">
             <UserCheck className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2" />
             <h3 className="text-sm font-semibold text-foreground">No matching students found</h3>
-            <p className="text-xs text-muted-foreground mt-1">Check the spelling or 12-digit LRN and try again.</p>
+            <p className="text-xs text-muted-foreground mt-1">Check the spelling, LRN, or student name and try again. Students without LRN are recently enrolled and pending profile completion.</p>
           </div>
         ) : (
           students.map((student) => (

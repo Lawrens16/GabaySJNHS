@@ -16,7 +16,7 @@ export interface OfficerJWTPayload {
 }
 
 /**
- * Signs a JWT specifically for a Seasonal Enrollment Officer with a strict 10-hour lifetime.
+ * Signs a JWT specifically for an Enrollment Officer with a strict 10-hour lifetime.
  */
 export async function signOfficerToken(officer: {
   id: string;

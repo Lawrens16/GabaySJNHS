@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
+      lrn,
       firstName,
       lastName,
       middleName,
@@ -62,11 +63,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (lrn && lrn.trim().length !== 12) {
+      return NextResponse.json(
+        { error: 'LRN must be exactly 12 digits.' },
+        { status: 400 }
+      );
+    }
+
     const adminClient = createAdminClient();
 
     const { data: student, error } = await adminClient
       .from('students')
       .insert({
+        lrn: lrn ? lrn.trim() : null,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         middle_name: middleName ? middleName.trim() : null,

@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Seasonal Enrollment Officer Routes Gate (/officer/*)
+  // 2. Enrollment Officer Routes Gate (/officer/*)
   if (pathname.startsWith('/officer')) {
     if (pathname === '/officer/login') {
       return NextResponse.next();

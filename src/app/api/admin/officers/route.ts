@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { createAdminClient } from '@/lib/supabase/server';
 
-// GET: List all seasonal Enrollment Officers
+// GET: List all Enrollment Officers
 export async function GET() {
   try {
     const adminClient = createAdminClient();
@@ -21,7 +21,7 @@ export async function GET() {
   }
 }
 
-// POST: Provision New Seasonal Enrollment Officer
+// POST: Provision New Enrollment Officer
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

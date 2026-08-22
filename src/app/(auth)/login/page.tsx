@@ -125,7 +125,7 @@ export default function StaffLoginPage() {
               className="inline-flex items-center gap-1.5 text-xs text-gabay-navy dark:text-blue-400 hover:underline font-semibold transition"
             >
               <KeyRound className="w-3.5 h-3.5" />
-              <span>Seasonal Enrollment Officer? Sign in with PIN</span>
+              <span>Enrollment Officer? Sign in with PIN</span>
             </Link>
           </div>
         </div>
