@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -10,20 +10,27 @@ import {
   RefreshCw,
   Loader2,
 } from 'lucide-react';
+import Pagination from '@/components/ui/Pagination';
 import { Student } from '@/types/database.types';
+
+const PAGE_SIZE = 6;
 
 export default function CounselorStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchStudents = async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/counselor/students?status=${statusFilter}`);
       const data = await res.json();
-      if (data.students) setStudents(data.students);
+      if (data.students) {
+        setStudents(data.students);
+        setCurrentPage(1);
+      }
     } catch {
       // Ignore
     } finally {
@@ -35,12 +42,21 @@ export default function CounselorStudentsPage() {
     fetchStudents();
   }, [statusFilter]);
 
-  const filteredStudents = students.filter((s) => {
+  const filteredStudents = useMemo(() => {
     const q = search.toLowerCase();
-    const name = `${s.first_name} ${s.last_name}`.toLowerCase();
-    const lrn = s.lrn || '';
-    return name.includes(q) || lrn.includes(q);
-  });
+    return students.filter((s) => {
+      const name = `${s.first_name} ${s.last_name}`.toLowerCase();
+      const lrn = s.lrn || '';
+      return name.includes(q) || lrn.includes(q);
+    });
+  }, [students, search]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredStudents.length / PAGE_SIZE) || 1;
+  const paginatedStudents = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredStudents.slice(start, start + PAGE_SIZE);
+  }, [filteredStudents, currentPage]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto w-full space-y-6">
@@ -72,7 +88,10 @@ export default function CounselorStudentsPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search assigned student by name or LRN..."
             className="w-full h-11 pl-10 pr-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
           />
@@ -86,8 +105,11 @@ export default function CounselorStudentsPage() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setStatusFilter(tab.id)}
-              className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
+              onClick={() => {
+                setStatusFilter(tab.id);
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 statusFilter === tab.id
                   ? 'bg-gabay-green text-white shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -113,7 +135,7 @@ export default function CounselorStudentsPage() {
             <p className="text-xs text-muted-foreground mt-1">There are no assigned students matching this filter.</p>
           </div>
         ) : (
-          filteredStudents.map((student) => {
+          paginatedStudents.map((student) => {
             const isStub = student.profile_status === 'stub';
             const hasSuspension = student.disciplinary_records?.some(
               (r) => r.is_suspended && r.clearance_status !== 'cleared'
@@ -198,6 +220,15 @@ export default function CounselorStudentsPage() {
           })
         )}
       </div>
+
+      {/* Pagination Controls */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filteredStudents.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

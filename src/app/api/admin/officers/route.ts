@@ -6,10 +6,27 @@ import { createAdminClient } from '@/lib/supabase/server';
 export async function GET() {
   try {
     const adminClient = createAdminClient();
-    const { data: officers, error } = await adminClient
+
+    // First attempt selecting with pin_code column
+    let officers: any = null;
+    const initialQuery = await adminClient
       .from('enrollment_officers')
-      .select('id, username, full_name, is_active, expires_at, created_by, last_login_at, created_at')
+      .select('id, username, full_name, pin_code, is_active, expires_at, created_by, last_login_at, created_at')
       .order('created_at', { ascending: false });
+
+    let error = initialQuery.error;
+    officers = initialQuery.data;
+
+    // Fallback if pin_code column does not exist yet
+    if (error && error.message.includes('pin_code')) {
+      const fallback = await adminClient
+        .from('enrollment_officers')
+        .select('id, username, full_name, is_active, expires_at, created_by, last_login_at, created_at')
+        .order('created_at', { ascending: false });
+
+      officers = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -49,17 +66,34 @@ export async function POST(req: NextRequest) {
 
     const adminClient = createAdminClient();
 
-    const { data, error } = await adminClient
+    // Attempt insertion with pin_code column
+    let insertPayload: Record<string, any> = {
+      username: cleanUsername,
+      full_name: fullName.trim(),
+      pin_hash: pinHash,
+      pin_code: pin,
+      is_active: true,
+      expires_at: expirationDate,
+    };
+
+    let { data, error } = await adminClient
       .from('enrollment_officers')
-      .insert({
-        username: cleanUsername,
-        full_name: fullName.trim(),
-        pin_hash: pinHash,
-        is_active: true,
-        expires_at: expirationDate,
-      })
-      .select('id, username, full_name, is_active, expires_at, created_at')
+      .insert(insertPayload)
+      .select('id, username, full_name, pin_code, is_active, expires_at, created_at')
       .single();
+
+    // Fallback if pin_code column does not exist yet
+    if (error && error.message.includes('pin_code')) {
+      delete insertPayload.pin_code;
+      const fallback = await adminClient
+        .from('enrollment_officers')
+        .insert(insertPayload)
+        .select('id, username, full_name, is_active, expires_at, created_at')
+        .single();
+
+      data = fallback.data ? { ...fallback.data, pin_code: pin } : null;
+      error = fallback.error;
+    }
 
     if (error) {
       if (error.code === '23505') {

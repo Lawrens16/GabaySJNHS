@@ -1,15 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, ShieldCheck, UserCheck, Loader2, AlertTriangle } from 'lucide-react';
 import StudentClearanceCard from '@/components/officer/StudentClearanceCard';
+import Pagination from '@/components/ui/Pagination';
 import { Student } from '@/types/database.types';
+
+const PAGE_SIZE = 6;
 
 export default function OfficerSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchStudents = async (query = '') => {
     setLoading(true);
@@ -22,6 +26,7 @@ export default function OfficerSearchPage() {
         setStudents([]);
       } else {
         setStudents(data.students || []);
+        setCurrentPage(1); // Reset page on new query
       }
     } catch {
       setErrorMsg('Network error. Please check your connection and try again.');
@@ -38,6 +43,12 @@ export default function OfficerSearchPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Pagination
+  const totalPages = Math.ceil(students.length / PAGE_SIZE) || 1;
+  const paginatedStudents = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return students.slice(start, start + PAGE_SIZE);
+  }, [students, currentPage]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto w-full space-y-6">
@@ -66,11 +77,11 @@ export default function OfficerSearchPage() {
         )}
       </div>
 
-      {/* Data Privacy & Audit Notice */}
+      {/* Data Privacy & Audit Notice (Simplified) */}
       <div className="p-3.5 rounded-2xl bg-muted/60 border border-border text-xs text-muted-foreground flex items-start gap-2.5 shadow-xs">
         <ShieldCheck className="w-4 h-4 text-gabay-green mt-0.5 shrink-0" />
         <p className="leading-relaxed text-[11px]">
-          🔒 <strong>Data Privacy & Individual Accountability:</strong> All student lookups performed at this station are automatically recorded in the school audit log. Counseling session contents and OCR notes are protected and hidden from enrollment stations.
+          🔒 <strong>Data Privacy & Individual Accountability:</strong> All student lookups performed at this station are authorized for enrollment verification and automatically recorded in the school audit log.
         </p>
       </div>
 
@@ -89,7 +100,7 @@ export default function OfficerSearchPage() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="text-gabay-green hover:underline transition"
+              className="text-gabay-green hover:underline transition cursor-pointer"
             >
               Clear Search
             </button>
@@ -105,12 +116,27 @@ export default function OfficerSearchPage() {
           <div className="p-12 text-center text-muted-foreground bg-card rounded-3xl border border-border shadow-xs">
             <UserCheck className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2" />
             <h3 className="text-sm font-semibold text-foreground">No matching students found</h3>
-            <p className="text-xs text-muted-foreground mt-1">Check the spelling, LRN, or student name and try again. Students without LRN are recently enrolled and pending profile completion.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Check the spelling, LRN, or student name and try again. Students without LRN are recently enrolled and pending profile completion.
+            </p>
           </div>
         ) : (
-          students.map((student) => (
-            <StudentClearanceCard key={student.id} student={student} />
-          ))
+          <>
+            <div className="space-y-3">
+              {paginatedStudents.map((student) => (
+                <StudentClearanceCard key={student.id} student={student} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={students.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </div>
     </div>

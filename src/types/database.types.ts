@@ -22,6 +22,7 @@ export interface EnrollmentOfficer {
   username: string;
   full_name: string;
   pin_hash: string;
+  pin_code?: string | null;
   is_active: boolean;
   expires_at: string;
   created_by: string | null;

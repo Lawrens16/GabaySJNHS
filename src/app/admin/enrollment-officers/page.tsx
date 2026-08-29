@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   KeyRound,
   UserPlus,
@@ -9,16 +9,32 @@ import {
   Power,
   Loader2,
   Calendar,
-  UserCheck
+  UserCheck,
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
 } from 'lucide-react';
 import OfficerProvisionModal from '@/components/admin/OfficerProvisionModal';
+import Pagination from '@/components/ui/Pagination';
 import { EnrollmentOfficer } from '@/types/database.types';
+
+const PAGE_SIZE = 6;
 
 export default function EnrollmentOfficersPage() {
   const [officers, setOfficers] = useState<EnrollmentOfficer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isProvisionOpen, setIsProvisionOpen] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  // Visible PINs toggle state: map of officerId -> boolean
+  const [visiblePins, setVisiblePins] = useState<Record<string, boolean>>({});
+
+  // Copy status feedback: map of copyKey -> boolean
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchOfficers = async () => {
     setLoading(true);
@@ -56,6 +72,39 @@ export default function EnrollmentOfficersPage() {
       setTogglingId(null);
     }
   };
+
+  const togglePinVisibility = (officerId: string) => {
+    setVisiblePins((prev) => ({
+      ...prev,
+      [officerId]: !prev[officerId],
+    }));
+  };
+
+  const copyToClipboard = async (text: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      setTimeout(() => {
+        setCopiedKey((curr) => (curr === key ? null : curr));
+      }, 2000);
+    } catch {
+      // Fallback
+    }
+  };
+
+  // Copy full credential pass: username + tab + pin for instant form paste
+  const handleCopyPass = async (officer: EnrollmentOfficer) => {
+    const pinVal = officer.pin_code || '123456';
+    const combined = `${officer.username}\t${pinVal}`;
+    await copyToClipboard(combined, `pass-${officer.id}`);
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(officers.length / PAGE_SIZE) || 1;
+  const paginatedOfficers = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return officers.slice(start, start + PAGE_SIZE);
+  }, [officers, currentPage]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto w-full space-y-6">
@@ -104,8 +153,12 @@ export default function EnrollmentOfficersPage() {
             <p className="text-xs text-muted-foreground mt-1">Click &quot;Provision Officer&quot; above to create a credential pass.</p>
           </div>
         ) : (
-          officers.map((officer) => {
+          paginatedOfficers.map((officer) => {
             const isExpired = new Date(officer.expires_at) <= new Date();
+            const isPinVisible = Boolean(visiblePins[officer.id]);
+            const isPassCopied = copiedKey === `pass-${officer.id}`;
+            const isUsernameCopied = copiedKey === `user-${officer.id}`;
+            const isPinCopied = copiedKey === `pin-${officer.id}`;
 
             return (
               <div
@@ -113,6 +166,7 @@ export default function EnrollmentOfficersPage() {
                 className="p-5 rounded-2xl bg-card border border-border hover:border-gabay-green/40 transition flex flex-col justify-between shadow-xs"
               >
                 <div>
+                  {/* Card Header: Avatar & Status Badge */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="w-10 h-10 rounded-xl bg-accent text-accent-foreground flex items-center justify-center border border-gabay-green/25 shrink-0 shadow-xs">
                       <UserCheck className="w-5 h-5 text-gabay-green" />
@@ -131,18 +185,83 @@ export default function EnrollmentOfficersPage() {
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-foreground mb-0.5">{officer.full_name}</h3>
-                  <div className="text-xs font-mono text-gabay-navy dark:text-blue-400 bg-muted px-2 py-1 rounded-md inline-block mb-3 border border-border">
-                    @{officer.username}
+                  <h3 className="text-sm font-bold text-foreground mb-1.5">{officer.full_name}</h3>
+
+                  {/* Credentials Box: Username & 6-Digit PIN */}
+                  <div className="p-3 rounded-xl bg-muted/60 border border-border space-y-2 mb-3">
+                    {/* Username with clean copy */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 text-xs font-mono">
+                        <span className="text-muted-foreground select-none">@</span>
+                        <span className="font-bold text-foreground">{officer.username}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(officer.username, `user-${officer.id}`)}
+                        title="Copy Clean Username"
+                        className="h-6 px-1.5 rounded bg-card hover:bg-muted border border-border text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition cursor-pointer"
+                      >
+                        {isUsernameCopied ? (
+                          <Check className="w-3 h-3 text-gabay-green" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                        <span>{isUsernameCopied ? 'Copied' : 'User'}</span>
+                      </button>
+                    </div>
+
+                    {/* PIN with Eye Reveal and Copy */}
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/60">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-semibold text-muted-foreground">PIN:</span>
+                        <span className="text-xs font-mono font-bold tracking-widest text-foreground">
+                          {isPinVisible
+                            ? officer.pin_code || '••••••'
+                            : '••••••'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => togglePinVisibility(officer.id)}
+                          title={isPinVisible ? 'Hide PIN' : 'Reveal PIN'}
+                          className="w-6 h-6 rounded bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
+                        >
+                          {isPinVisible ? (
+                            <EyeOff className="w-3 h-3" />
+                          ) : (
+                            <Eye className="w-3 h-3 text-gabay-green" />
+                          )}
+                        </button>
+
+                        {officer.pin_code && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(officer.pin_code!, `pin-${officer.id}`)}
+                            title="Copy 6-Digit PIN"
+                            className="h-6 px-1.5 rounded bg-card hover:bg-muted border border-border text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition cursor-pointer"
+                          >
+                            {isPinCopied ? (
+                              <Check className="w-3 h-3 text-gabay-green" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                            <span>{isPinCopied ? 'Copied' : 'PIN'}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
+                  {/* Expiration and Login Info */}
                   <div className="space-y-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                       <span>Expires: {new Date(officer.expires_at).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px]">
-                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                       <span>
                         Last login:{' '}
                         {officer.last_login_at
@@ -153,20 +272,38 @@ export default function EnrollmentOfficersPage() {
                   </div>
                 </div>
 
-                {/* Killswitch Action */}
-                <div className="mt-5 pt-3 border-t border-border flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">Access Switch:</span>
+                {/* Card Actions Footer */}
+                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCopyPass(officer)}
+                    className="h-8 px-2.5 rounded-lg bg-accent text-accent-foreground border border-gabay-green/30 hover:bg-gabay-green hover:text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+                    title="Copies Username and PIN separated by Tab for fast login form pasting"
+                  >
+                    {isPassCopied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-gabay-green" />
+                        <span>Pass Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-gabay-green" />
+                        <span>Copy Pass</span>
+                      </>
+                    )}
+                  </button>
+
                   <button
                     onClick={() => handleToggleActive(officer.id, officer.is_active)}
                     disabled={togglingId === officer.id}
-                    className={`h-8 px-3 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+                    className={`h-8 px-2.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${
                       officer.is_active
                         ? 'bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 text-destructive'
                         : 'bg-emerald-500/15 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
                     }`}
                   >
                     <Power className="w-3 h-3" />
-                    <span>{officer.is_active ? 'Revoke Access' : 'Restore Access'}</span>
+                    <span>{officer.is_active ? 'Revoke' : 'Restore'}</span>
                   </button>
                 </div>
               </div>
@@ -174,6 +311,15 @@ export default function EnrollmentOfficersPage() {
           })
         )}
       </div>
+
+      {/* Pagination Controls */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={officers.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Provision Modal */}
       <OfficerProvisionModal
