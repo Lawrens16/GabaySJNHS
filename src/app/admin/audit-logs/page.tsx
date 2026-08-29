@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Clock, RefreshCw, Loader2, Search } from 'lucide-react';
+import Pagination from '@/components/ui/Pagination';
 import { OfficerAccessLog } from '@/types/database.types';
+
+const PAGE_SIZE = 10;
 
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState<OfficerAccessLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -16,6 +20,7 @@ export default function AdminAuditLogsPage() {
       const data = await res.json();
       if (data.logs) {
         setLogs(data.logs);
+        setCurrentPage(1);
       }
     } catch {
       // Ignore
@@ -28,13 +33,22 @@ export default function AdminAuditLogsPage() {
     fetchLogs();
   }, []);
 
-  const filteredLogs = logs.filter((log) => {
+  const filteredLogs = useMemo(() => {
     const q = search.toLowerCase();
-    const officerName = log.officer?.full_name?.toLowerCase() || '';
-    const studentName = `${log.student?.first_name || ''} ${log.student?.last_name || ''}`.toLowerCase();
-    const lrn = log.student?.lrn || '';
-    return officerName.includes(q) || studentName.includes(q) || lrn.includes(q);
-  });
+    return logs.filter((log) => {
+      const officerName = log.officer?.full_name?.toLowerCase() || '';
+      const studentName = `${log.student?.first_name || ''} ${log.student?.last_name || ''}`.toLowerCase();
+      const lrn = log.student?.lrn || '';
+      return officerName.includes(q) || studentName.includes(q) || lrn.includes(q);
+    });
+  }, [logs, search]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE) || 1;
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredLogs.slice(start, start + PAGE_SIZE);
+  }, [filteredLogs, currentPage]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto w-full space-y-6">
@@ -65,7 +79,10 @@ export default function AdminAuditLogsPage() {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
           placeholder="Filter by officer name, student name, or LRN..."
           className="w-full h-11 pl-10 pr-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
         />
@@ -99,7 +116,7 @@ export default function AdminAuditLogsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((log) => (
+                paginatedLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-muted/40 transition">
                     <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
@@ -136,6 +153,15 @@ export default function AdminAuditLogsPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filteredLogs.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

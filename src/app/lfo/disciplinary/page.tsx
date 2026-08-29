@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   ShieldAlert,
   Plus,
@@ -11,10 +11,13 @@ import {
   Loader2,
   Edit2,
   Trash2,
-  Check
+  Check,
 } from 'lucide-react';
 import DisciplinaryRecordFormModal from '@/components/lfo/DisciplinaryRecordFormModal';
+import Pagination from '@/components/ui/Pagination';
 import { DisciplinaryRecord, Student } from '@/types/database.types';
+
+const PAGE_SIZE = 10;
 
 export default function LFODisciplinaryPage() {
   const [records, setRecords] = useState<DisciplinaryRecord[]>([]);
@@ -25,6 +28,7 @@ export default function LFODisciplinaryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<DisciplinaryRecord | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchData = async () => {
     setLoading(true);
@@ -41,6 +45,7 @@ export default function LFODisciplinaryPage() {
 
       if (recordsData.records) setRecords(recordsData.records);
       if (studentsData.students) setStudents(studentsData.students);
+      setCurrentPage(1);
     } catch {
       // Ignore
     } finally {
@@ -89,13 +94,22 @@ export default function LFODisciplinaryPage() {
     }
   };
 
-  const filteredRecords = records.filter((r) => {
+  const filteredRecords = useMemo(() => {
     const q = search.toLowerCase();
-    const studentName = `${r.student?.first_name || ''} ${r.student?.last_name || ''}`.toLowerCase();
-    const desc = r.offense_description.toLowerCase();
-    const sanction = r.sanction_imposed.toLowerCase();
-    return studentName.includes(q) || desc.includes(q) || sanction.includes(q);
-  });
+    return records.filter((r) => {
+      const studentName = `${r.student?.first_name || ''} ${r.student?.last_name || ''}`.toLowerCase();
+      const desc = r.offense_description.toLowerCase();
+      const sanction = r.sanction_imposed.toLowerCase();
+      return studentName.includes(q) || desc.includes(q) || sanction.includes(q);
+    });
+  }, [records, search]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRecords.length / PAGE_SIZE) || 1;
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredRecords.slice(start, start + PAGE_SIZE);
+  }, [filteredRecords, currentPage]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto w-full space-y-6">
@@ -119,7 +133,7 @@ export default function LFODisciplinaryPage() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="h-10 px-3.5 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer shadow-xs"
+            className="h-10 px-3.5 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-2 transition active:scale-95 cursor-pointer self-start sm:self-auto shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -145,7 +159,10 @@ export default function LFODisciplinaryPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search by student name, violation, or sanction..."
             className="w-full h-11 pl-10 pr-4 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition"
           />
@@ -160,8 +177,11 @@ export default function LFODisciplinaryPage() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setClearanceFilter(tab.id)}
-              className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
+              onClick={() => {
+                setClearanceFilter(tab.id);
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 clearanceFilter === tab.id
                   ? 'bg-gabay-navy text-white shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -187,100 +207,113 @@ export default function LFODisciplinaryPage() {
             <p className="text-xs text-muted-foreground mt-1">There are no infractions matching the current filter.</p>
           </div>
         ) : (
-          filteredRecords.map((r) => {
-            const isSuspendedAndActive = r.is_suspended && r.clearance_status !== 'cleared';
+          <>
+            <div className="space-y-3">
+              {paginatedRecords.map((r) => {
+                const isSuspendedAndActive = r.is_suspended && r.clearance_status !== 'cleared';
 
-            return (
-              <div
-                key={r.id}
-                className="p-5 rounded-2xl bg-card border border-border hover:border-gabay-green/40 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs"
-              >
-                {/* Left: Info */}
-                <div className="space-y-2 max-w-2xl">
-                  <div className="flex items-center flex-wrap gap-2">
-                    <span className="text-sm font-bold text-foreground">
-                      {r.student ? `${r.student.first_name} ${r.student.last_name}` : 'Student Record'}
-                    </span>
-                    {r.student?.grade_level && (
-                      <span className="text-xs text-muted-foreground">
-                        • Grade {r.student.grade_level} - {r.student.section || 'General'}
-                      </span>
-                    )}
+                return (
+                  <div
+                    key={r.id}
+                    className="p-5 rounded-2xl bg-card border border-border hover:border-gabay-green/40 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs"
+                  >
+                    {/* Left: Info */}
+                    <div className="space-y-2 max-w-2xl">
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span className="text-sm font-bold text-foreground">
+                          {r.student ? `${r.student.first_name} ${r.student.last_name}` : 'Student Record'}
+                        </span>
+                        {r.student?.grade_level && (
+                          <span className="text-xs text-muted-foreground">
+                            • Grade {r.student.grade_level} - {r.student.section || 'General'}
+                          </span>
+                        )}
 
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        r.offense_category === 'grave'
-                          ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30'
-                          : r.offense_category === 'major'
-                          ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                          : 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30'
-                      }`}
-                    >
-                      {r.offense_category} Offense
-                    </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            r.offense_category === 'grave'
+                              ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30'
+                              : r.offense_category === 'major'
+                              ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                              : 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30'
+                          }`}
+                        >
+                          {r.offense_category} Offense
+                        </span>
 
-                    {isSuspendedAndActive && (
-                      <span className="px-2 py-0.5 rounded-full bg-destructive/15 text-destructive text-[10px] font-bold border border-destructive/30 flex items-center gap-1 animate-pulse">
-                        <AlertTriangle className="w-3 h-3" />
-                        <span>Suspension Active (Hold)</span>
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-xs text-foreground leading-relaxed font-medium">
-                    &quot;{r.offense_description}&quot;
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
-                    <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 font-medium">
-                      <span>Sanction:</span> {r.sanction_imposed}
-                    </div>
-                    <div>
-                      <span>Date:</span> {new Date(r.incident_date).toLocaleDateString()}
-                    </div>
-                    {r.suspension_start_date && (
-                      <div className="text-rose-600 dark:text-rose-400 font-medium">
-                        Suspension: {new Date(r.suspension_start_date).toLocaleDateString()} —{' '}
-                        {r.suspension_end_date ? new Date(r.suspension_end_date).toLocaleDateString() : 'Indefinite'}
+                        {isSuspendedAndActive && (
+                          <span className="px-2 py-0.5 rounded-full bg-destructive/15 text-destructive text-[10px] font-bold border border-destructive/30 flex items-center gap-1 animate-pulse">
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>Suspension Active (Hold)</span>
+                          </span>
+                        )}
                       </div>
-                    )}
+
+                      <p className="text-xs text-foreground leading-relaxed font-medium">
+                        &quot;{r.offense_description}&quot;
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
+                        <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 font-medium">
+                          <span>Sanction:</span> {r.sanction_imposed}
+                        </div>
+                        <div>
+                          <span>Date:</span> {new Date(r.incident_date).toLocaleDateString()}
+                        </div>
+                        {r.suspension_start_date && (
+                          <div className="text-rose-600 dark:text-rose-400 font-medium">
+                            Suspension: {new Date(r.suspension_start_date).toLocaleDateString()} —{' '}
+                            {r.suspension_end_date ? new Date(r.suspension_end_date).toLocaleDateString() : 'Indefinite'}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 border-border shrink-0">
+                      {r.clearance_status !== 'cleared' && (
+                        <button
+                          onClick={() => handleQuickClear(r.id)}
+                          disabled={clearingId === r.id}
+                          className="h-9 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Grant Clearance</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          setSelectedRecord(r);
+                          setIsModalOpen(true);
+                        }}
+                        className="h-9 px-3 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="h-9 px-3 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                );
+              })}
+            </div>
 
-                {/* Right: Actions */}
-                <div className="flex items-center gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 border-border shrink-0">
-                  {r.clearance_status !== 'cleared' && (
-                    <button
-                      onClick={() => handleQuickClear(r.id)}
-                      disabled={clearingId === r.id}
-                      className="h-9 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Grant Clearance</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      setSelectedRecord(r);
-                      setIsModalOpen(true);
-                    }}
-                    className="h-9 px-3 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                    <span>Edit</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="h-9 px-3 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            );
-          })
+            {/* Pagination Controls */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredRecords.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </div>
 
