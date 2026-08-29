@@ -115,29 +115,86 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PATCH: Revoke or Toggle Officer Access
+// PATCH: Revoke / Toggle Access or Reset PIN
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { officerId, isActive } = body;
+    const { officerId, isActive, newPin } = body;
 
     if (!officerId) {
       return NextResponse.json({ error: 'Officer ID is required' }, { status: 400 });
     }
 
     const adminClient = createAdminClient();
-    const { data, error } = await adminClient
+    const updatePayload: Record<string, any> = {};
+
+    if (isActive !== undefined) {
+      updatePayload.is_active = isActive;
+    }
+
+    if (newPin) {
+      if (newPin.length !== 6 || !/^\d{6}$/.test(newPin)) {
+        return NextResponse.json(
+          { error: 'PIN must be exactly 6 numeric digits.' },
+          { status: 400 }
+        );
+      }
+      updatePayload.pin_hash = bcrypt.hashSync(newPin, 10);
+      updatePayload.pin_code = newPin;
+    }
+
+    let { data, error } = await adminClient
       .from('enrollment_officers')
-      .update({ is_active: isActive })
+      .update(updatePayload)
       .eq('id', officerId)
-      .select('id, username, full_name, is_active, expires_at')
+      .select('id, username, full_name, pin_code, is_active, expires_at')
       .single();
+
+    // Fallback if pin_code column does not exist yet
+    if (error && error.message.includes('pin_code')) {
+      delete updatePayload.pin_code;
+      const fallback = await adminClient
+        .from('enrollment_officers')
+        .update(updatePayload)
+        .eq('id', officerId)
+        .select('id, username, full_name, is_active, expires_at')
+        .single();
+
+      data = fallback.data ? { ...fallback.data, pin_code: newPin || null } : null;
+      error = fallback.error;
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, officer: data });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// DELETE: Delete an Enrollment Officer
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const officerId = searchParams.get('officerId');
+
+    if (!officerId) {
+      return NextResponse.json({ error: 'Officer ID is required' }, { status: 400 });
+    }
+
+    const adminClient = createAdminClient();
+    const { error } = await adminClient
+      .from('enrollment_officers')
+      .delete()
+      .eq('id', officerId);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Enrollment officer deleted successfully.' });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

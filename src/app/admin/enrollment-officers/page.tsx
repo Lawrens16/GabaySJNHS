@@ -14,8 +14,12 @@ import {
   EyeOff,
   Copy,
   Check,
+  Trash2,
+  RotateCcw,
 } from 'lucide-react';
 import OfficerProvisionModal from '@/components/admin/OfficerProvisionModal';
+import OfficerDeleteModal from '@/components/admin/OfficerDeleteModal';
+import OfficerResetPinModal from '@/components/admin/OfficerResetPinModal';
 import Pagination from '@/components/ui/Pagination';
 import { EnrollmentOfficer } from '@/types/database.types';
 
@@ -27,8 +31,18 @@ export default function EnrollmentOfficersPage() {
   const [isProvisionOpen, setIsProvisionOpen] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  // Modals state
+  const [deleteTarget, setDeleteTarget] = useState<EnrollmentOfficer | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const [resetPinTarget, setResetPinTarget] = useState<EnrollmentOfficer | null>(null);
+  const [isResetPinOpen, setIsResetPinOpen] = useState(false);
+
   // Visible PINs toggle state: map of officerId -> boolean
   const [visiblePins, setVisiblePins] = useState<Record<string, boolean>>({});
+
+  // Local PIN store: allows immediate visibility when created/reset even before page refresh
+  const [localPins, setLocalPins] = useState<Record<string, string>>({});
 
   // Copy status feedback: map of copyKey -> boolean
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -73,6 +87,27 @@ export default function EnrollmentOfficersPage() {
     }
   };
 
+  const handleDeleteOfficer = async (officerId: string) => {
+    try {
+      const res = await fetch(`/api/admin/officers?officerId=${officerId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setOfficers((prev) => prev.filter((o) => o.id !== officerId));
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handlePinResetSuccess = (officerId: string, newPin: string) => {
+    setLocalPins((prev) => ({ ...prev, [officerId]: newPin }));
+    setVisiblePins((prev) => ({ ...prev, [officerId]: true }));
+    setOfficers((prev) =>
+      prev.map((o) => (o.id === officerId ? { ...o, pin_code: newPin } : o))
+    );
+  };
+
   const togglePinVisibility = (officerId: string) => {
     setVisiblePins((prev) => ({
       ...prev,
@@ -94,8 +129,8 @@ export default function EnrollmentOfficersPage() {
 
   // Copy full credential pass: username + tab + pin for instant form paste
   const handleCopyPass = async (officer: EnrollmentOfficer) => {
-    const pinVal = officer.pin_code || '123456';
-    const combined = `${officer.username}\t${pinVal}`;
+    const pinVal = localPins[officer.id] || officer.pin_code || '';
+    const combined = pinVal ? `${officer.username}\t${pinVal}` : officer.username;
     await copyToClipboard(combined, `pass-${officer.id}`);
   };
 
@@ -156,6 +191,7 @@ export default function EnrollmentOfficersPage() {
           paginatedOfficers.map((officer) => {
             const isExpired = new Date(officer.expires_at) <= new Date();
             const isPinVisible = Boolean(visiblePins[officer.id]);
+            const activePin = localPins[officer.id] || officer.pin_code;
             const isPassCopied = copiedKey === `pass-${officer.id}`;
             const isUsernameCopied = copiedKey === `user-${officer.id}`;
             const isPinCopied = copiedKey === `pin-${officer.id}`;
@@ -166,23 +202,38 @@ export default function EnrollmentOfficersPage() {
                 className="p-5 rounded-2xl bg-card border border-border hover:border-gabay-green/40 transition flex flex-col justify-between shadow-xs"
               >
                 <div>
-                  {/* Card Header: Avatar & Status Badge */}
+                  {/* Card Header: Avatar, Status Badge & Delete Button */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="w-10 h-10 rounded-xl bg-accent text-accent-foreground flex items-center justify-center border border-gabay-green/25 shrink-0 shadow-xs">
                       <UserCheck className="w-5 h-5 text-gabay-green" />
                     </div>
 
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        !officer.is_active
-                          ? 'bg-destructive/15 text-destructive border border-destructive/25'
-                          : isExpired
-                          ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                          : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
-                      }`}
-                    >
-                      {!officer.is_active ? 'Revoked' : isExpired ? 'Expired' : 'Active'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          !officer.is_active
+                            ? 'bg-destructive/15 text-destructive border border-destructive/25'
+                            : isExpired
+                            ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                            : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                        }`}
+                      >
+                        {!officer.is_active ? 'Revoked' : isExpired ? 'Expired' : 'Active'}
+                      </span>
+
+                      {/* Delete Officer Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDeleteTarget(officer);
+                          setIsDeleteOpen(true);
+                        }}
+                        title="Delete Officer"
+                        className="w-7 h-7 rounded-lg bg-card hover:bg-destructive/10 border border-border hover:border-destructive/30 text-muted-foreground hover:text-destructive flex items-center justify-center transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   <h3 className="text-sm font-bold text-foreground mb-1.5">{officer.full_name}</h3>
@@ -210,15 +261,33 @@ export default function EnrollmentOfficersPage() {
                       </button>
                     </div>
 
-                    {/* PIN with Eye Reveal and Copy */}
+                    {/* PIN with Eye Reveal, Copy and Reset */}
                     <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/60">
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-semibold text-muted-foreground">PIN:</span>
-                        <span className="text-xs font-mono font-bold tracking-widest text-foreground">
-                          {isPinVisible
-                            ? officer.pin_code || '••••••'
-                            : '••••••'}
-                        </span>
+                        {isPinVisible ? (
+                          activePin ? (
+                            <span className="text-xs font-mono font-bold tracking-widest text-foreground bg-accent/60 px-1.5 py-0.5 rounded border border-gabay-green/20">
+                              {activePin}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setResetPinTarget(officer);
+                                setIsResetPinOpen(true);
+                              }}
+                              className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                              title="Legacy pass created before PIN storage. Click to set a new PIN."
+                            >
+                              <span>Legacy pass • Set PIN</span>
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-xs font-mono font-bold tracking-widest text-muted-foreground">
+                            ••••••
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-1">
@@ -229,16 +298,16 @@ export default function EnrollmentOfficersPage() {
                           className="w-6 h-6 rounded bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
                         >
                           {isPinVisible ? (
-                            <EyeOff className="w-3 h-3" />
+                            <EyeOff className="w-3 h-3 text-gabay-green" />
                           ) : (
-                            <Eye className="w-3 h-3 text-gabay-green" />
+                            <Eye className="w-3 h-3" />
                           )}
                         </button>
 
-                        {officer.pin_code && (
+                        {activePin && (
                           <button
                             type="button"
-                            onClick={() => copyToClipboard(officer.pin_code!, `pin-${officer.id}`)}
+                            onClick={() => copyToClipboard(activePin, `pin-${officer.id}`)}
                             title="Copy 6-Digit PIN"
                             className="h-6 px-1.5 rounded bg-card hover:bg-muted border border-border text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition cursor-pointer"
                           >
@@ -250,6 +319,18 @@ export default function EnrollmentOfficersPage() {
                             <span>{isPinCopied ? 'Copied' : 'PIN'}</span>
                           </button>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResetPinTarget(officer);
+                            setIsResetPinOpen(true);
+                          }}
+                          title="Reset / Change 6-Digit PIN"
+                          className="w-6 h-6 rounded bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -326,6 +407,28 @@ export default function EnrollmentOfficersPage() {
         isOpen={isProvisionOpen}
         onClose={() => setIsProvisionOpen(false)}
         onSuccess={fetchOfficers}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <OfficerDeleteModal
+        isOpen={isDeleteOpen}
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setDeleteTarget(null);
+        }}
+        officer={deleteTarget}
+        onConfirmDelete={handleDeleteOfficer}
+      />
+
+      {/* Reset PIN Modal */}
+      <OfficerResetPinModal
+        isOpen={isResetPinOpen}
+        onClose={() => {
+          setIsResetPinOpen(false);
+          setResetPinTarget(null);
+        }}
+        officer={resetPinTarget}
+        onSuccess={handlePinResetSuccess}
       />
     </div>
   );
