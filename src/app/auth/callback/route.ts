@@ -27,6 +27,12 @@ export async function GET(request: Request) {
         }
 
         if (profile.status === 'approved') {
+          // One-time multi-role exception: redirect to workspace selector
+          // This is intentionally hardcoded for a single known dual-role user.
+          if (user.email === 'lucille.magnetico5300@deped.gov.ph') {
+            return NextResponse.redirect(`${origin}/role-select`);
+          }
+
           if (profile.role === 'counselor') {
             return NextResponse.redirect(`${origin}/counselor/timetable`);
           } else if (profile.role === 'lfo') {

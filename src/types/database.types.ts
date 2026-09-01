@@ -49,6 +49,9 @@ export interface Student {
   assigned_counselor_id: string | null;
   created_by_lfo_id: string | null;
   completed_by_counselor_id: string | null;
+  // Evidence: guardian-signed docs or photos attached by LFO at stub creation
+  stub_evidence_urls?: string[] | null;
+  stub_evidence_notes?: string | null;
   created_at: string;
   updated_at: string;
   // Joins
