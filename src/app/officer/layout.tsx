@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { UserCheck, Clock, LogOut } from 'lucide-react';
+import { Clock, LogOut, Search } from 'lucide-react';
 import GabayLogo from '@/components/brand/GabayLogo';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 
@@ -13,8 +13,11 @@ export default function OfficerLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [officerName, setOfficerName] = useState('Enrollment Officer');
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+
+  const isSearchActive = pathname.startsWith('/officer/search') || pathname.startsWith('/officer/student');
 
   useEffect(() => {
     async function loadSession() {
@@ -65,12 +68,23 @@ export default function OfficerLayout({
     <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors">
       {/* Top Navbar */}
       <header className="bg-card border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-        <Link href="/officer/search" className="flex items-center gap-2.5">
-          <GabayLogo size="sm" showSubtitle={false} />
-          <span className="hidden sm:inline-block text-xs font-bold px-2 py-0.5 rounded-md bg-accent text-accent-foreground">
-            Clearance Station
-          </span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/officer/search" className="flex items-center gap-2.5">
+            <GabayLogo size="sm" showSubtitle={false} />
+          </Link>
+
+          <Link
+            href="/officer/search"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition ${
+              isSearchActive
+                ? 'bg-gabay-green/15 dark:bg-gabay-green/20 text-gabay-green dark:text-emerald-400 font-bold border border-gabay-green/30 dark:border-gabay-green/40 shadow-xs'
+                : 'text-muted-foreground hover:text-foreground font-semibold'
+            }`}
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Clearance Verification</span>
+          </Link>
+        </div>
 
         {/* Right Info: Officer badge, 10h timer, theme switch, logout */}
         <div className="flex items-center gap-2 sm:gap-3">
@@ -79,7 +93,7 @@ export default function OfficerLayout({
             <div
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono font-semibold ${
                 remainingSeconds < 1800
-                  ? 'bg-destructive/10 text-destructive border-destructive/30 animate-pulse'
+                  ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-300 dark:border-red-800 animate-pulse'
                   : 'bg-muted border-border text-foreground'
               }`}
               title="Time remaining before 10-hour session cutoff"

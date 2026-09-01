@@ -34,15 +34,15 @@ export default function RejectConfirmModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-card border border-border text-foreground rounded-2xl overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md bg-card border-2 border-red-500 dark:border-red-600 ring-4 ring-red-500/10 text-foreground rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-card">
+        <div className="px-5 py-4 border-b border-red-200 dark:border-red-900 flex items-center justify-between bg-red-50 dark:bg-red-950/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-destructive/15 text-destructive flex items-center justify-center border border-destructive/25">
-              <AlertTriangle className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/80 text-red-600 dark:text-red-300 flex items-center justify-center border border-red-300 dark:border-red-700">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-sm font-bold text-foreground">Confirm Account Rejection</h2>
+            <h2 className="text-sm font-bold text-red-700 dark:text-red-300">Confirm Account Rejection</h2>
           </div>
           <button
             onClick={onClose}
@@ -55,12 +55,12 @@ export default function RejectConfirmModal({
         {/* Body */}
         <div className="p-5 space-y-4">
           {/* Staff Identity */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
-            <div className="w-10 h-10 rounded-xl bg-muted border border-border overflow-hidden flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/50 border border-border">
+            <div className="w-11 h-11 rounded-xl bg-muted border border-border overflow-hidden flex items-center justify-center shrink-0">
               {user.avatar_url ? (
                 <img src={user.avatar_url} alt={user.full_name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm font-bold text-gabay-green">
+                <span className="text-base font-bold text-gabay-green">
                   {user.full_name?.charAt(0) || 'U'}
                 </span>
               )}
@@ -72,9 +72,9 @@ export default function RejectConfirmModal({
           </div>
 
           {/* Warning Message */}
-          <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/25 text-xs space-y-1.5">
-            <p className="font-semibold text-destructive">
-              This will reject the account and block their access to all Gabay portals.
+          <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border-2 border-red-200 dark:border-red-900 text-xs space-y-1.5">
+            <p className="font-bold text-red-700 dark:text-red-300">
+              This will reject the account and block access to all school staff portals.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               The rejected account can be restored later using the &quot;Allow Re-Application&quot; action in the approval queue. This action is reversible.
@@ -94,7 +94,7 @@ export default function RejectConfirmModal({
           <button
             onClick={handleConfirm}
             disabled={loading}
-            className="h-9 px-4 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-sm"
+            className="h-9 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-md"
           >
             {loading ? (
               <>

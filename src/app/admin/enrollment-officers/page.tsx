@@ -20,6 +20,7 @@ import {
 import OfficerProvisionModal from '@/components/admin/OfficerProvisionModal';
 import OfficerDeleteModal from '@/components/admin/OfficerDeleteModal';
 import OfficerResetPinModal from '@/components/admin/OfficerResetPinModal';
+import OfficerRevokeModal from '@/components/admin/OfficerRevokeModal';
 import Pagination from '@/components/ui/Pagination';
 import { EnrollmentOfficer } from '@/types/database.types';
 
@@ -34,6 +35,9 @@ export default function EnrollmentOfficersPage() {
   // Modals state
   const [deleteTarget, setDeleteTarget] = useState<EnrollmentOfficer | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const [revokeTarget, setRevokeTarget] = useState<EnrollmentOfficer | null>(null);
+  const [isRevokeOpen, setIsRevokeOpen] = useState(false);
 
   const [resetPinTarget, setResetPinTarget] = useState<EnrollmentOfficer | null>(null);
   const [isResetPinOpen, setIsResetPinOpen] = useState(false);
@@ -70,16 +74,45 @@ export default function EnrollmentOfficersPage() {
   }, []);
 
   const handleToggleActive = async (officerId: string, currentActive: boolean) => {
+    if (currentActive) {
+      // If revoking, open the revoke warning modal
+      const officer = officers.find((o) => o.id === officerId);
+      if (officer) {
+        setRevokeTarget(officer);
+        setIsRevokeOpen(true);
+      }
+      return;
+    }
+
+    // If restoring, restore immediately
     setTogglingId(officerId);
     try {
       const res = await fetch('/api/admin/officers', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ officerId, isActive: !currentActive }),
+        body: JSON.stringify({ officerId, isActive: true }),
       });
       if (res.ok) {
         setOfficers((prev) =>
-          prev.map((o) => (o.id === officerId ? { ...o, is_active: !currentActive } : o))
+          prev.map((o) => (o.id === officerId ? { ...o, is_active: true } : o))
+        );
+      }
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleConfirmRevoke = async (officerId: string) => {
+    setTogglingId(officerId);
+    try {
+      const res = await fetch('/api/admin/officers', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ officerId, isActive: false }),
+      });
+      if (res.ok) {
+        setOfficers((prev) =>
+          prev.map((o) => (o.id === officerId ? { ...o, is_active: false } : o))
         );
       }
     } finally {
@@ -196,10 +229,23 @@ export default function EnrollmentOfficersPage() {
             const isUsernameCopied = copiedKey === `user-${officer.id}`;
             const isPinCopied = copiedKey === `pin-${officer.id}`;
 
+            // Check if currently active in a live 10-hour session
+            const lastLoginTime = officer.last_login_at ? new Date(officer.last_login_at).getTime() : 0;
+            const elapsedMs = Date.now() - lastLoginTime;
+            const isLiveSession = officer.is_active && lastLoginTime > 0 && elapsedMs < 10 * 3600 * 1000;
+            const minutesAgo = Math.floor(elapsedMs / (60 * 1000));
+            const hoursAgo = Math.floor(minutesAgo / 60);
+            const loginElapsedFormatted =
+              hoursAgo > 0 ? `${hoursAgo}h ${minutesAgo % 60}m ago` : `${minutesAgo}m ago`;
+
             return (
               <div
                 key={officer.id}
-                className="p-5 rounded-2xl bg-card border border-border hover:border-gabay-green/40 transition flex flex-col justify-between shadow-xs"
+                className={`p-5 rounded-2xl bg-card border transition flex flex-col justify-between shadow-xs ${
+                  isLiveSession
+                    ? 'border-gabay-green/60 ring-2 ring-gabay-green/15 shadow-sm'
+                    : 'border-border hover:border-gabay-green/40'
+                }`}
               >
                 <div>
                   {/* Card Header: Avatar, Status Badge & Delete Button */}
@@ -209,17 +255,27 @@ export default function EnrollmentOfficersPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          !officer.is_active
-                            ? 'bg-destructive/15 text-destructive border border-destructive/25'
-                            : isExpired
-                            ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                            : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
-                        }`}
-                      >
-                        {!officer.is_active ? 'Revoked' : isExpired ? 'Expired' : 'Active'}
-                      </span>
+                      {isLiveSession ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 shadow-xs">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <span>In-Use</span>
+                        </span>
+                      ) : (
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            !officer.is_active
+                              ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800'
+                              : isExpired
+                              ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                              : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                          }`}
+                        >
+                          {!officer.is_active ? 'Revoked' : isExpired ? 'Expired' : 'Active'}
+                        </span>
+                      )}
 
                       {/* Delete Officer Button */}
                       <button
@@ -229,7 +285,7 @@ export default function EnrollmentOfficersPage() {
                           setIsDeleteOpen(true);
                         }}
                         title="Delete Officer"
-                        className="w-7 h-7 rounded-lg bg-card hover:bg-destructive/10 border border-border hover:border-destructive/30 text-muted-foreground hover:text-destructive flex items-center justify-center transition cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-950/40 hover:bg-red-600 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-300 dark:border-red-800 flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -265,29 +321,9 @@ export default function EnrollmentOfficersPage() {
                     <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/60">
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-semibold text-muted-foreground">PIN:</span>
-                        {isPinVisible ? (
-                          activePin ? (
-                            <span className="text-xs font-mono font-bold tracking-widest text-foreground bg-accent/60 px-1.5 py-0.5 rounded border border-gabay-green/20">
-                              {activePin}
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setResetPinTarget(officer);
-                                setIsResetPinOpen(true);
-                              }}
-                              className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
-                              title="Legacy pass created before PIN storage. Click to set a new PIN."
-                            >
-                              <span>Legacy pass • Set PIN</span>
-                            </button>
-                          )
-                        ) : (
-                          <span className="text-xs font-mono font-bold tracking-widest text-muted-foreground">
-                            ••••••
-                          </span>
-                        )}
+                        <span className="text-xs font-mono font-bold tracking-widest text-foreground bg-accent/60 px-1.5 py-0.5 rounded border border-gabay-green/20">
+                          {isPinVisible ? activePin || '••••••' : '••••••'}
+                        </span>
                       </div>
 
                       <div className="flex items-center gap-1">
@@ -344,10 +380,15 @@ export default function EnrollmentOfficersPage() {
                     <div className="flex items-center gap-1.5 text-[11px]">
                       <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                       <span>
-                        Last login:{' '}
-                        {officer.last_login_at
-                          ? new Date(officer.last_login_at).toLocaleString()
-                          : 'Never logged in'}
+                        {isLiveSession ? (
+                          <strong className="text-emerald-700 dark:text-emerald-300">
+                            Logged in {loginElapsedFormatted} (Live)
+                          </strong>
+                        ) : officer.last_login_at ? (
+                          `Last login: ${new Date(officer.last_login_at).toLocaleString()}`
+                        ) : (
+                          'Never logged in'
+                        )}
                       </span>
                     </div>
                   </div>
@@ -377,9 +418,9 @@ export default function EnrollmentOfficersPage() {
                   <button
                     onClick={() => handleToggleActive(officer.id, officer.is_active)}
                     disabled={togglingId === officer.id}
-                    className={`h-8 px-2.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${
+                    className={`h-8 px-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs ${
                       officer.is_active
-                        ? 'bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 text-destructive'
+                        ? 'bg-red-50 dark:bg-red-950/40 hover:bg-red-600 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-300 dark:border-red-800'
                         : 'bg-emerald-500/15 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
                     }`}
                   >
@@ -407,6 +448,17 @@ export default function EnrollmentOfficersPage() {
         isOpen={isProvisionOpen}
         onClose={() => setIsProvisionOpen(false)}
         onSuccess={fetchOfficers}
+      />
+
+      {/* Revoke Confirmation & Warning Modal */}
+      <OfficerRevokeModal
+        isOpen={isRevokeOpen}
+        onClose={() => {
+          setIsRevokeOpen(false);
+          setRevokeTarget(null);
+        }}
+        officer={revokeTarget}
+        onConfirmRevoke={handleConfirmRevoke}
       />
 
       {/* Delete Confirmation Modal */}

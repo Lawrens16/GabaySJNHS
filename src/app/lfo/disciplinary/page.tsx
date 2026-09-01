@@ -14,6 +14,7 @@ import {
   Check,
 } from 'lucide-react';
 import DisciplinaryRecordFormModal from '@/components/lfo/DisciplinaryRecordFormModal';
+import DisciplinaryDeleteModal from '@/components/lfo/DisciplinaryDeleteModal';
 import Pagination from '@/components/ui/Pagination';
 import { DisciplinaryRecord, Student } from '@/types/database.types';
 
@@ -29,6 +30,10 @@ export default function LFODisciplinaryPage() {
   const [selectedRecord, setSelectedRecord] = useState<DisciplinaryRecord | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Delete modal state
+  const [deleteTarget, setDeleteTarget] = useState<DisciplinaryRecord | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -80,8 +85,7 @@ export default function LFODisciplinaryPage() {
     }
   };
 
-  const handleDelete = async (recordId: string) => {
-    if (!confirm('Are you sure you want to delete this disciplinary record?')) return;
+  const handleConfirmDelete = async (recordId: string) => {
     try {
       const res = await fetch(`/api/lfo/disciplinary?recordId=${recordId}`, {
         method: 'DELETE',
@@ -215,7 +219,11 @@ export default function LFODisciplinaryPage() {
                 return (
                   <div
                     key={r.id}
-                    className="p-5 rounded-2xl bg-card border border-border hover:border-gabay-green/40 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs"
+                    className={`p-5 rounded-2xl bg-card border transition flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs ${
+                      isSuspendedAndActive
+                        ? 'border-2 border-red-400 dark:border-red-600 bg-red-50/30 dark:bg-red-950/30 shadow-sm'
+                        : 'border-border hover:border-gabay-green/40'
+                    }`}
                   >
                     {/* Left: Info */}
                     <div className="space-y-2 max-w-2xl">
@@ -242,8 +250,8 @@ export default function LFODisciplinaryPage() {
                         </span>
 
                         {isSuspendedAndActive && (
-                          <span className="px-2 py-0.5 rounded-full bg-destructive/15 text-destructive text-[10px] font-bold border border-destructive/30 flex items-center gap-1 animate-pulse">
-                            <AlertTriangle className="w-3 h-3" />
+                          <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-extrabold border border-red-700 flex items-center gap-1 shadow-xs animate-pulse">
+                            <AlertTriangle className="w-3.5 h-3.5" />
                             <span>Suspension Active (Hold)</span>
                           </span>
                         )}
@@ -261,7 +269,7 @@ export default function LFODisciplinaryPage() {
                           <span>Date:</span> {new Date(r.incident_date).toLocaleDateString()}
                         </div>
                         {r.suspension_start_date && (
-                          <div className="text-rose-600 dark:text-rose-400 font-medium">
+                          <div className="text-red-600 dark:text-red-400 font-bold">
                             Suspension: {new Date(r.suspension_start_date).toLocaleDateString()} —{' '}
                             {r.suspension_end_date ? new Date(r.suspension_end_date).toLocaleDateString() : 'Indefinite'}
                           </div>
@@ -294,8 +302,12 @@ export default function LFODisciplinaryPage() {
                       </button>
 
                       <button
-                        onClick={() => handleDelete(r.id)}
-                        className="h-9 px-3 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                        onClick={() => {
+                          setDeleteTarget(r);
+                          setIsDeleteOpen(true);
+                        }}
+                        title="Delete Disciplinary Record"
+                        className="h-9 px-3 rounded-xl bg-red-50 dark:bg-red-950/40 hover:bg-red-600 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-300 dark:border-red-800 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -327,6 +339,17 @@ export default function LFODisciplinaryPage() {
         onSuccess={fetchData}
         students={students}
         initialRecord={selectedRecord}
+      />
+
+      {/* Disciplinary Delete Confirmation Modal */}
+      <DisciplinaryDeleteModal
+        isOpen={isDeleteOpen}
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setDeleteTarget(null);
+        }}
+        record={deleteTarget}
+        onConfirmDelete={handleConfirmDelete}
       />
     </div>
   );

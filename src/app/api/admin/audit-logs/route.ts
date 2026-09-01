@@ -15,7 +15,7 @@ export async function GET() {
         student:students(id, lrn, first_name, last_name, grade_level, section)
       `)
       .order('accessed_at', { ascending: false })
-      .limit(100);
+      .limit(500);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

@@ -125,10 +125,16 @@ export default function AdminAuditLogsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
-                      {log.officer?.full_name || 'Enrollment Officer'}
-                      <span className="ml-1.5 text-[10px] text-gabay-green font-mono">
-                        (@{log.officer?.username || 'officer'})
-                      </span>
+                      {log.officer?.full_name || 'Former Officer (Removed)'}
+                      {log.officer?.username && !log.officer.username.startsWith('deleted_') ? (
+                        <span className="ml-1.5 text-[10px] text-gabay-green font-mono">
+                          (@{log.officer.username})
+                        </span>
+                      ) : (
+                        <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] bg-muted text-muted-foreground font-semibold">
+                          Account Removed
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="font-semibold text-foreground">

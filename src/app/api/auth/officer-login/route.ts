@@ -48,8 +48,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify PIN with bcrypt
-    const isMatch = bcrypt.compareSync(pin.trim(), officer.pin_hash);
+    // Verify PIN with bcrypt (extracts hash portion if stored in dual format)
+    const bcryptHash = officer.pin_hash && officer.pin_hash.includes('::')
+      ? officer.pin_hash.split('::')[0]
+      : officer.pin_hash;
+
+    const isMatch = bcrypt.compareSync(pin.trim(), bcryptHash);
     if (!isMatch) {
       return NextResponse.json(
         { error: 'Invalid 6-digit PIN.' },

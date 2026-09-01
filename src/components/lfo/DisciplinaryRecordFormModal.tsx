@@ -236,39 +236,46 @@ export default function DisciplinaryRecordFormModal({
           </div>
 
           {/* Suspension Checkbox & Dates */}
-          <div className="p-3.5 rounded-2xl bg-muted/60 border border-border space-y-3">
-            <label className="flex items-center gap-2 cursor-pointer">
+          <div
+            className={`p-4 rounded-2xl space-y-3 transition-all duration-200 ${
+              isSuspended
+                ? 'bg-red-50 dark:bg-red-950/60 border-2 border-red-500 dark:border-red-500 ring-2 ring-red-500/20 shadow-sm'
+                : 'bg-red-50/50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-900/60 hover:border-red-400'
+            }`}
+          >
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isSuspended}
                 onChange={(e) => setIsSuspended(e.target.checked)}
-                className="w-4 h-4 rounded text-gabay-green focus:ring-gabay-green border-border"
+                className="w-4.5 h-4.5 rounded text-red-600 focus:ring-red-600 border-red-300 cursor-pointer accent-red-600"
               />
-              <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
-                Disciplinary Suspension (Holds Enrollment Clearance)
+              <span className="text-xs font-extrabold text-red-700 dark:text-red-300 flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+                <span>Disciplinary Suspension (Holds Enrollment Clearance)</span>
               </span>
             </label>
 
             {isSuspended && (
-              <div className="grid grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-2 gap-3 pt-1 animate-in fade-in duration-150">
                 <div>
-                  <label className="block text-[11px] text-muted-foreground mb-1">Start Date</label>
+                  <label className="block text-[11px] font-bold text-red-700 dark:text-red-300 mb-1">Suspension Start Date *</label>
                   <input
                     type="date"
                     value={suspensionStartDate}
                     onChange={(e) => setSuspensionStartDate(e.target.value)}
                     required={isSuspended}
-                    className="w-full h-9 px-3 rounded-lg bg-card border border-border text-foreground text-xs"
+                    className="w-full h-9 px-3 rounded-lg bg-card border-2 border-red-300 dark:border-red-800 focus:border-red-600 focus:ring-2 focus:ring-red-600/20 text-foreground text-xs font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-muted-foreground mb-1">End Date</label>
+                  <label className="block text-[11px] font-bold text-red-700 dark:text-red-300 mb-1">Suspension End Date *</label>
                   <input
                     type="date"
                     value={suspensionEndDate}
                     onChange={(e) => setSuspensionEndDate(e.target.value)}
                     required={isSuspended}
-                    className="w-full h-9 px-3 rounded-lg bg-card border border-border text-foreground text-xs"
+                    className="w-full h-9 px-3 rounded-lg bg-card border-2 border-red-300 dark:border-red-800 focus:border-red-600 focus:ring-2 focus:ring-red-600/20 text-foreground text-xs font-semibold"
                   />
                 </div>
               </div>

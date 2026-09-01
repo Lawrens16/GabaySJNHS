@@ -252,7 +252,7 @@ export default function ApprovalQueuePage() {
                         <button
                           onClick={() => openRejectModal(user, 'Reject Account')}
                           disabled={actionLoadingId === user.id}
-                          className="h-9 px-3 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/30 text-xs font-semibold transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                          className="h-9 px-3 rounded-xl bg-red-50 dark:bg-red-950/40 hover:bg-red-600 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-300 dark:border-red-800 text-xs font-bold transition flex items-center gap-1 cursor-pointer disabled:opacity-50 shadow-xs active:scale-95"
                         >
                           <XCircle className="w-3.5 h-3.5" />
                           <span>Reject</span>
@@ -268,7 +268,7 @@ export default function ApprovalQueuePage() {
                           <button
                             onClick={() => openRejectModal(user, 'Revoke Access')}
                             disabled={actionLoadingId === user.id}
-                            className="h-8 px-2.5 rounded-lg bg-card hover:bg-muted border border-border text-xs text-muted-foreground hover:text-destructive transition cursor-pointer"
+                            className="h-8 px-2.5 rounded-lg bg-red-50 dark:bg-red-950/40 hover:bg-red-600 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-300 dark:border-red-800 text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
                           >
                             Revoke Access
                           </button>

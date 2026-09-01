@@ -2,29 +2,29 @@
 
 import { useState } from 'react';
 import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
-import { EnrollmentOfficer } from '@/types/database.types';
+import { DisciplinaryRecord } from '@/types/database.types';
 
-interface OfficerDeleteModalProps {
+interface DisciplinaryDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  officer: EnrollmentOfficer | null;
-  onConfirmDelete: (officerId: string) => Promise<void>;
+  record: DisciplinaryRecord | null;
+  onConfirmDelete: (recordId: string) => Promise<void>;
 }
 
-export default function OfficerDeleteModal({
+export default function DisciplinaryDeleteModal({
   isOpen,
   onClose,
-  officer,
+  record,
   onConfirmDelete,
-}: OfficerDeleteModalProps) {
+}: DisciplinaryDeleteModalProps) {
   const [loading, setLoading] = useState(false);
 
-  if (!isOpen || !officer) return null;
+  if (!isOpen || !record) return null;
 
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      await onConfirmDelete(officer.id);
+      await onConfirmDelete(record.id);
       onClose();
     } finally {
       setLoading(false);
@@ -40,7 +40,7 @@ export default function OfficerDeleteModal({
             <div className="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/80 text-red-600 dark:text-red-300 flex items-center justify-center border border-red-300 dark:border-red-700">
               <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-sm font-bold text-red-700 dark:text-red-300">Delete Enrollment Officer</h2>
+            <h2 className="text-sm font-bold text-red-700 dark:text-red-300">Delete Disciplinary Record</h2>
           </div>
           <button
             onClick={onClose}
@@ -52,21 +52,26 @@ export default function OfficerDeleteModal({
 
         {/* Body */}
         <div className="p-5 space-y-4">
-          {/* Officer Info Card */}
+          {/* Infraction Info */}
           <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-1">
-            <div className="text-sm font-bold text-foreground">{officer.full_name}</div>
-            <div className="text-xs font-mono text-gabay-navy dark:text-blue-400">
-              @{officer.username}
+            <div className="text-sm font-bold text-foreground">
+              {record.student ? `${record.student.first_name} ${record.student.last_name}` : 'Student Record'}
+            </div>
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              &quot;{record.offense_description}&quot;
+            </p>
+            <div className="text-[11px] font-semibold text-red-600 dark:text-red-400 pt-1">
+              Sanction: {record.sanction_imposed}
             </div>
           </div>
 
-          {/* Warning Notice */}
+          {/* Warning Message */}
           <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border-2 border-red-200 dark:border-red-900 text-xs space-y-1.5">
             <p className="font-bold text-red-700 dark:text-red-300">
-              This action will permanently delete this enrollment officer account.
+              This action will permanently delete this disciplinary record.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Their station access credentials will be immediately revoked and their PIN will no longer be accepted.
+              If this infraction was holding the student&apos;s enrollment clearance, removing it will resolve the associated hold.
             </p>
           </div>
         </div>
@@ -93,7 +98,7 @@ export default function OfficerDeleteModal({
             ) : (
               <>
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete Officer</span>
+                <span>Delete Record</span>
               </>
             )}
           </button>
