@@ -176,7 +176,7 @@ export default function CounselorStudentsPage() {
                       </span>
 
                       {hasSuspension && (
-                        <span className="px-2 py-0.5 rounded-full bg-destructive text-white text-[10px] font-extrabold border border-destructive/60 shadow-xs">
+                        <span className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-extrabold border border-red-700 shadow-xs">
                           Disciplinary Hold
                         </span>
                       )}

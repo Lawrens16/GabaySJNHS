@@ -229,7 +229,7 @@ export default function EnrollmentOfficersPage() {
                           setIsDeleteOpen(true);
                         }}
                         title="Delete Officer"
-                        className="w-7 h-7 rounded-lg bg-destructive/15 hover:bg-destructive text-destructive hover:text-white border border-destructive/30 flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-950/40 hover:bg-red-600 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-300 dark:border-red-800 flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -379,7 +379,7 @@ export default function EnrollmentOfficersPage() {
                     disabled={togglingId === officer.id}
                     className={`h-8 px-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs ${
                       officer.is_active
-                        ? 'bg-destructive/15 hover:bg-destructive text-destructive hover:text-white border border-destructive/40'
+                        ? 'bg-red-50 dark:bg-red-950/40 hover:bg-red-600 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-300 dark:border-red-800'
                         : 'bg-emerald-500/15 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
                     }`}
                   >

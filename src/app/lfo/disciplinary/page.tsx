@@ -221,7 +221,7 @@ export default function LFODisciplinaryPage() {
                     key={r.id}
                     className={`p-5 rounded-2xl bg-card border transition flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs ${
                       isSuspendedAndActive
-                        ? 'border-2 border-destructive/50 bg-destructive/[0.02] shadow-sm'
+                        ? 'border-2 border-red-400 dark:border-red-600 bg-red-50/30 dark:bg-red-950/30 shadow-sm'
                         : 'border-border hover:border-gabay-green/40'
                     }`}
                   >
@@ -250,7 +250,7 @@ export default function LFODisciplinaryPage() {
                         </span>
 
                         {isSuspendedAndActive && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-destructive text-white text-[10px] font-extrabold border border-destructive/60 flex items-center gap-1 shadow-xs animate-pulse">
+                          <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-extrabold border border-red-700 flex items-center gap-1 shadow-xs animate-pulse">
                             <AlertTriangle className="w-3.5 h-3.5" />
                             <span>Suspension Active (Hold)</span>
                           </span>
@@ -269,7 +269,7 @@ export default function LFODisciplinaryPage() {
                           <span>Date:</span> {new Date(r.incident_date).toLocaleDateString()}
                         </div>
                         {r.suspension_start_date && (
-                          <div className="text-destructive font-bold">
+                          <div className="text-red-600 dark:text-red-400 font-bold">
                             Suspension: {new Date(r.suspension_start_date).toLocaleDateString()} —{' '}
                             {r.suspension_end_date ? new Date(r.suspension_end_date).toLocaleDateString() : 'Indefinite'}
                           </div>
@@ -307,7 +307,7 @@ export default function LFODisciplinaryPage() {
                           setIsDeleteOpen(true);
                         }}
                         title="Delete Disciplinary Record"
-                        className="h-9 px-3 rounded-xl bg-destructive/15 hover:bg-destructive text-destructive hover:text-white border border-destructive/40 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+                        className="h-9 px-3 rounded-xl bg-red-50 dark:bg-red-950/40 hover:bg-red-600 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-300 dark:border-red-800 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

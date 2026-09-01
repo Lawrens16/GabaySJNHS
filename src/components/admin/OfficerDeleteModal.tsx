@@ -33,14 +33,14 @@ export default function OfficerDeleteModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-card border-2 border-destructive/30 ring-2 ring-destructive/10 text-foreground rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative w-full max-w-md bg-card border-2 border-red-500 dark:border-red-600 ring-4 ring-red-500/10 text-foreground rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-destructive/20 flex items-center justify-between bg-destructive/10">
+        <div className="px-5 py-4 border-b border-red-200 dark:border-red-900 flex items-center justify-between bg-red-50 dark:bg-red-950/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-destructive/20 text-destructive flex items-center justify-center border border-destructive/30">
-              <AlertTriangle className="w-5 h-5 text-destructive" />
+            <div className="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/80 text-red-600 dark:text-red-300 flex items-center justify-center border border-red-300 dark:border-red-700">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-sm font-bold text-destructive">Delete Enrollment Officer</h2>
+            <h2 className="text-sm font-bold text-red-700 dark:text-red-300">Delete Enrollment Officer</h2>
           </div>
           <button
             onClick={onClose}
@@ -61,8 +61,8 @@ export default function OfficerDeleteModal({
           </div>
 
           {/* Warning Notice */}
-          <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/25 text-xs space-y-1.5">
-            <p className="font-semibold text-destructive">
+          <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border-2 border-red-200 dark:border-red-900 text-xs space-y-1.5">
+            <p className="font-bold text-red-700 dark:text-red-300">
               This action will permanently delete this enrollment officer account.
             </p>
             <p className="text-muted-foreground leading-relaxed">
@@ -83,7 +83,7 @@ export default function OfficerDeleteModal({
           <button
             onClick={handleConfirm}
             disabled={loading}
-            className="h-9 px-4 rounded-xl bg-destructive hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-md"
+            className="h-9 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-md"
           >
             {loading ? (
               <>

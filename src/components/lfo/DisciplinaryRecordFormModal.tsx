@@ -239,8 +239,8 @@ export default function DisciplinaryRecordFormModal({
           <div
             className={`p-4 rounded-2xl space-y-3 transition-all duration-200 ${
               isSuspended
-                ? 'bg-destructive/10 border-2 border-destructive/50 ring-2 ring-destructive/15 shadow-sm'
-                : 'bg-destructive/[0.04] border border-destructive/25 hover:border-destructive/40'
+                ? 'bg-red-50 dark:bg-red-950/60 border-2 border-red-500 dark:border-red-500 ring-2 ring-red-500/20 shadow-sm'
+                : 'bg-red-50/50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-900/60 hover:border-red-400'
             }`}
           >
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
@@ -248,10 +248,10 @@ export default function DisciplinaryRecordFormModal({
                 type="checkbox"
                 checked={isSuspended}
                 onChange={(e) => setIsSuspended(e.target.checked)}
-                className="w-4.5 h-4.5 rounded text-destructive focus:ring-destructive border-destructive/40 cursor-pointer accent-red-600"
+                className="w-4.5 h-4.5 rounded text-red-600 focus:ring-red-600 border-red-300 cursor-pointer accent-red-600"
               />
-              <span className="text-xs font-extrabold text-destructive flex items-center gap-1.5">
-                <ShieldAlert className="w-4 h-4 text-destructive shrink-0" />
+              <span className="text-xs font-extrabold text-red-700 dark:text-red-300 flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
                 <span>Disciplinary Suspension (Holds Enrollment Clearance)</span>
               </span>
             </label>
@@ -259,23 +259,23 @@ export default function DisciplinaryRecordFormModal({
             {isSuspended && (
               <div className="grid grid-cols-2 gap-3 pt-1 animate-in fade-in duration-150">
                 <div>
-                  <label className="block text-[11px] font-bold text-destructive mb-1">Suspension Start Date *</label>
+                  <label className="block text-[11px] font-bold text-red-700 dark:text-red-300 mb-1">Suspension Start Date *</label>
                   <input
                     type="date"
                     value={suspensionStartDate}
                     onChange={(e) => setSuspensionStartDate(e.target.value)}
                     required={isSuspended}
-                    className="w-full h-9 px-3 rounded-lg bg-card border-2 border-destructive/30 focus:border-destructive focus:ring-2 focus:ring-destructive/20 text-foreground text-xs font-medium"
+                    className="w-full h-9 px-3 rounded-lg bg-card border-2 border-red-300 dark:border-red-800 focus:border-red-600 focus:ring-2 focus:ring-red-600/20 text-foreground text-xs font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-destructive mb-1">Suspension End Date *</label>
+                  <label className="block text-[11px] font-bold text-red-700 dark:text-red-300 mb-1">Suspension End Date *</label>
                   <input
                     type="date"
                     value={suspensionEndDate}
                     onChange={(e) => setSuspensionEndDate(e.target.value)}
                     required={isSuspended}
-                    className="w-full h-9 px-3 rounded-lg bg-card border-2 border-destructive/30 focus:border-destructive focus:ring-2 focus:ring-destructive/20 text-foreground text-xs font-medium"
+                    className="w-full h-9 px-3 rounded-lg bg-card border-2 border-red-300 dark:border-red-800 focus:border-red-600 focus:ring-2 focus:ring-red-600/20 text-foreground text-xs font-semibold"
                   />
                 </div>
               </div>
