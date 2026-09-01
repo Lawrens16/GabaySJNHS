@@ -32,15 +32,15 @@ export default function OfficerDeleteModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-card border border-border text-foreground rounded-2xl overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md bg-card border-2 border-destructive/30 ring-2 ring-destructive/10 text-foreground rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-card">
+        <div className="px-5 py-4 border-b border-destructive/20 flex items-center justify-between bg-destructive/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-destructive/15 text-destructive flex items-center justify-center border border-destructive/25">
-              <AlertTriangle className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-destructive/20 text-destructive flex items-center justify-center border border-destructive/30">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
             </div>
-            <h2 className="text-sm font-bold text-foreground">Delete Enrollment Officer</h2>
+            <h2 className="text-sm font-bold text-destructive">Delete Enrollment Officer</h2>
           </div>
           <button
             onClick={onClose}
@@ -53,7 +53,7 @@ export default function OfficerDeleteModal({
         {/* Body */}
         <div className="p-5 space-y-4">
           {/* Officer Info Card */}
-          <div className="p-3 rounded-xl bg-muted/50 border border-border space-y-1">
+          <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-1">
             <div className="text-sm font-bold text-foreground">{officer.full_name}</div>
             <div className="text-xs font-mono text-gabay-navy dark:text-blue-400">
               @{officer.username}
@@ -83,7 +83,7 @@ export default function OfficerDeleteModal({
           <button
             onClick={handleConfirm}
             disabled={loading}
-            className="h-9 px-4 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-sm"
+            className="h-9 px-4 rounded-xl bg-destructive hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-md"
           >
             {loading ? (
               <>

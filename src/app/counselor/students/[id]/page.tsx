@@ -164,7 +164,7 @@ export default function StudentDetailPage({
               </span>
 
               {hasSuspension && (
-                <span className="px-2.5 py-0.5 rounded-full bg-destructive/20 text-destructive text-[10px] font-bold border border-destructive/30">
+                <span className="px-2.5 py-0.5 rounded-full bg-destructive text-white text-[10px] font-extrabold border border-destructive/60 shadow-xs">
                   Disciplinary Hold
                 </span>
               )}

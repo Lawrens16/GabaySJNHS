@@ -1,32 +1,30 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, XCircle, X, Loader2 } from 'lucide-react';
-import { Profile } from '@/types/database.types';
+import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
+import { DisciplinaryRecord } from '@/types/database.types';
 
-interface RejectConfirmModalProps {
+interface DisciplinaryDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: Profile | null;
-  onConfirmReject: (userId: string) => Promise<void>;
-  actionLabel?: string;
+  record: DisciplinaryRecord | null;
+  onConfirmDelete: (recordId: string) => Promise<void>;
 }
 
-export default function RejectConfirmModal({
+export default function DisciplinaryDeleteModal({
   isOpen,
   onClose,
-  user,
-  onConfirmReject,
-  actionLabel = 'Reject Account',
-}: RejectConfirmModalProps) {
+  record,
+  onConfirmDelete,
+}: DisciplinaryDeleteModalProps) {
   const [loading, setLoading] = useState(false);
 
-  if (!isOpen || !user) return null;
+  if (!isOpen || !record) return null;
 
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      await onConfirmReject(user.id);
+      await onConfirmDelete(record.id);
       onClose();
     } finally {
       setLoading(false);
@@ -42,7 +40,7 @@ export default function RejectConfirmModal({
             <div className="w-9 h-9 rounded-xl bg-destructive/20 text-destructive flex items-center justify-center border border-destructive/30">
               <AlertTriangle className="w-5 h-5 text-destructive" />
             </div>
-            <h2 className="text-sm font-bold text-destructive">Confirm Account Rejection</h2>
+            <h2 className="text-sm font-bold text-destructive">Delete Disciplinary Record</h2>
           </div>
           <button
             onClick={onClose}
@@ -54,30 +52,26 @@ export default function RejectConfirmModal({
 
         {/* Body */}
         <div className="p-5 space-y-4">
-          {/* Staff Identity */}
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/50 border border-border">
-            <div className="w-11 h-11 rounded-xl bg-muted border border-border overflow-hidden flex items-center justify-center shrink-0">
-              {user.avatar_url ? (
-                <img src={user.avatar_url} alt={user.full_name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-base font-bold text-gabay-green">
-                  {user.full_name?.charAt(0) || 'U'}
-                </span>
-              )}
+          {/* Infraction Info */}
+          <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-1">
+            <div className="text-sm font-bold text-foreground">
+              {record.student ? `${record.student.first_name} ${record.student.last_name}` : 'Student Record'}
             </div>
-            <div className="min-w-0">
-              <div className="text-sm font-bold text-foreground truncate">{user.full_name}</div>
-              <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              &quot;{record.offense_description}&quot;
+            </p>
+            <div className="text-[11px] font-semibold text-destructive pt-1">
+              Sanction: {record.sanction_imposed}
             </div>
           </div>
 
           {/* Warning Message */}
           <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/25 text-xs space-y-1.5">
             <p className="font-semibold text-destructive">
-              This will reject the account and block access to all school staff portals.
+              This action will permanently delete this disciplinary record.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              The rejected account can be restored later using the &quot;Allow Re-Application&quot; action in the approval queue. This action is reversible.
+              If this infraction was holding the student&apos;s enrollment clearance, removing it will resolve the associated hold.
             </p>
           </div>
         </div>
@@ -99,12 +93,12 @@ export default function RejectConfirmModal({
             {loading ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Processing...</span>
+                <span>Deleting...</span>
               </>
             ) : (
               <>
-                <XCircle className="w-3.5 h-3.5" />
-                <span>{actionLabel}</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Record</span>
               </>
             )}
           </button>
