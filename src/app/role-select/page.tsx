@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LayoutDashboard, ShieldCheck, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, GraduationCap, HeartHandshake } from 'lucide-react';
 import GabayLogo from '@/components/brand/GabayLogo';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 
@@ -73,6 +73,29 @@ export default function RoleSelectPage() {
               </div>
               <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                 Dispatch student stubs, manage disciplinary records, and track sanctions.
+              </div>
+            </div>
+            <div className="text-muted-foreground group-hover:text-gabay-green transition">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </Link>
+
+          {/* Guidance Counselor Dashboard */}
+          <Link
+            href="/counselor/timetable"
+            className="group flex items-center gap-4 p-5 rounded-2xl bg-card border-2 border-border hover:border-gabay-green/50 hover:shadow-md transition active:scale-[0.98]"
+          >
+            <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center border border-gabay-green/25 group-hover:bg-gabay-green/10 transition shrink-0 shadow-xs">
+              <HeartHandshake className="w-6 h-6 text-gabay-green" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold text-foreground group-hover:text-gabay-green transition">
+                Guidance Counselor
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                View daily timetable, manage assigned students, and record counseling notes.
               </div>
             </div>
             <div className="text-muted-foreground group-hover:text-gabay-green transition">
