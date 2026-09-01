@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
       gender,
       assignedCounselorId,
       createdById,
+      evidenceUrls,
+      evidenceNotes,
     } = body;
 
     if (!firstName || !lastName) {
@@ -85,6 +87,8 @@ export async function POST(req: NextRequest) {
         profile_status: 'stub',
         assigned_counselor_id: assignedCounselorId || null,
         created_by_lfo_id: createdById || null,
+        stub_evidence_urls: evidenceUrls && evidenceUrls.length > 0 ? evidenceUrls : [],
+        stub_evidence_notes: evidenceNotes ? evidenceNotes.trim() : null,
       })
       .select(`
         *,

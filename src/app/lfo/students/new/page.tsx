@@ -1,9 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { UserPlus, ArrowLeft, HeartHandshake, Check, Loader2, Sparkles, CreditCard } from 'lucide-react';
+import {
+  UserPlus,
+  ArrowLeft,
+  HeartHandshake,
+  Check,
+  Loader2,
+  Sparkles,
+  CreditCard,
+  Paperclip,
+  X,
+  FileImage,
+  ImagePlus,
+  StickyNote,
+} from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import { Profile } from '@/types/database.types';
+
+const MAX_EVIDENCE_FILES = 5;
+const MAX_FILE_SIZE_MB = 5;
+
+interface EvidenceFile {
+  file: File;
+  previewUrl: string;
+  uploading: boolean;
+  uploadedUrl: string | null;
+  error: string | null;
+}
 
 export default function NewStudentStubPage() {
   const [lrn, setLrn] = useState('');
@@ -18,6 +43,11 @@ export default function NewStudentStubPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Evidence state
+  const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([]);
+  const [evidenceNotes, setEvidenceNotes] = useState('');
+  const evidenceInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function loadCounselors() {
@@ -37,6 +67,99 @@ export default function NewStudentStubPage() {
     loadCounselors();
   }, []);
 
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      evidenceFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
+    };
+  }, [evidenceFiles]);
+
+  const handleEvidenceSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    if (!selected.length) return;
+
+    const remaining = MAX_EVIDENCE_FILES - evidenceFiles.length;
+    const toAdd = selected.slice(0, remaining);
+
+    const newItems: EvidenceFile[] = toAdd
+      .filter((file) => {
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          setErrorMsg(`File "${file.name}" exceeds ${MAX_FILE_SIZE_MB}MB and was skipped.`);
+          return false;
+        }
+        if (!file.type.startsWith('image/')) {
+          setErrorMsg(`File "${file.name}" is not an image and was skipped.`);
+          return false;
+        }
+        return true;
+      })
+      .map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        uploading: false,
+        uploadedUrl: null,
+        error: null,
+      }));
+
+    setEvidenceFiles((prev) => [...prev, ...newItems]);
+    // Reset input so same file can be re-added if removed
+    if (evidenceInputRef.current) evidenceInputRef.current.value = '';
+  };
+
+  const removeEvidence = (idx: number) => {
+    setEvidenceFiles((prev) => {
+      URL.revokeObjectURL(prev[idx].previewUrl);
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
+  const uploadEvidenceToSupabase = async (): Promise<string[]> => {
+    const supabase = createClient();
+    const uploadedUrls: string[] = [];
+
+    for (let i = 0; i < evidenceFiles.length; i++) {
+      const item = evidenceFiles[i];
+      if (item.uploadedUrl) {
+        uploadedUrls.push(item.uploadedUrl);
+        continue;
+      }
+
+      // Update uploading state
+      setEvidenceFiles((prev) =>
+        prev.map((f, idx) => (idx === i ? { ...f, uploading: true } : f))
+      );
+
+      const ext = item.file.name.split('.').pop() || 'jpg';
+      const path = `stubs/${Date.now()}_${i}.${ext}`;
+
+      const { data, error } = await supabase.storage
+        .from('student-evidence')
+        .upload(path, item.file, { upsert: false, contentType: item.file.type });
+
+      if (error) {
+        setEvidenceFiles((prev) =>
+          prev.map((f, idx) =>
+            idx === i ? { ...f, uploading: false, error: error.message } : f
+          )
+        );
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage.from('student-evidence').getPublicUrl(data.path);
+      const url = urlData.publicUrl;
+
+      setEvidenceFiles((prev) =>
+        prev.map((f, idx) =>
+          idx === i ? { ...f, uploading: false, uploadedUrl: url } : f
+        )
+      );
+
+      uploadedUrls.push(url);
+    }
+
+    return uploadedUrls;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim()) {
@@ -45,13 +168,21 @@ export default function NewStudentStubPage() {
     }
 
     if (lrn.trim() && lrn.trim().length !== 12) {
-      setErrorMsg('Learner Reference Number (LRN) must be exactly 12 digits (or left blank for counselor to fill).');
+      setErrorMsg(
+        'Learner Reference Number (LRN) must be exactly 12 digits (or left blank for counselor to fill).'
+      );
       return;
     }
 
     try {
       setLoading(true);
       setErrorMsg(null);
+
+      // Upload evidence images to Supabase Storage first
+      let evidenceUrls: string[] = [];
+      if (evidenceFiles.length > 0) {
+        evidenceUrls = await uploadEvidenceToSupabase();
+      }
 
       const res = await fetch('/api/lfo/students', {
         method: 'POST',
@@ -65,6 +196,8 @@ export default function NewStudentStubPage() {
           section,
           gender,
           assignedCounselorId,
+          evidenceUrls,
+          evidenceNotes: evidenceNotes.trim() || undefined,
         }),
       });
 
@@ -77,16 +210,19 @@ export default function NewStudentStubPage() {
       }
 
       setSuccessMsg(`Student stub for ${firstName} ${lastName} dispatched successfully!`);
+
       // Reset form
       setLrn('');
       setFirstName('');
       setLastName('');
       setMiddleName('');
       setSection('');
+      setEvidenceFiles([]);
+      setEvidenceNotes('');
 
       setTimeout(() => {
         setSuccessMsg(null);
-      }, 3000);
+      }, 4000);
     } catch {
       setErrorMsg('Network error occurred.');
     } finally {
@@ -111,7 +247,8 @@ export default function NewStudentStubPage() {
           Dispatch New Student Stub
         </h1>
         <p className="text-xs text-muted-foreground mt-1">
-          Create a minimal student record stub. The assigned Guidance Counselor will capture the face photo and complete the profile.
+          Create a minimal student record stub. The assigned Guidance Counselor will capture the
+          face photo and complete the profile.
         </p>
       </div>
 
@@ -131,7 +268,7 @@ export default function NewStudentStubPage() {
 
       {/* Form Card */}
       <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border shadow-md">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* LRN Field */}
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center justify-between">
@@ -276,11 +413,127 @@ export default function NewStudentStubPage() {
             </select>
           </div>
 
+          {/* ── Evidence Section ── */}
+          <div className="pt-2 border-t border-border">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center border border-gabay-green/25">
+                <Paperclip className="w-3.5 h-3.5 text-gabay-green" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground">Evidence Attachments</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Attach signed guardian consent, permits, or supporting photos (up to {MAX_EVIDENCE_FILES} images, max {MAX_FILE_SIZE_MB}MB each).
+                </p>
+              </div>
+            </div>
+
+            {/* Evidence Previews Grid */}
+            {evidenceFiles.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
+                {evidenceFiles.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-square rounded-xl overflow-hidden border border-border bg-muted group shadow-xs"
+                  >
+                    <img
+                      src={item.previewUrl}
+                      alt={`Evidence ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Uploading overlay */}
+                    {item.uploading && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      </div>
+                    )}
+                    {/* Uploaded checkmark */}
+                    {item.uploadedUrl && !item.uploading && (
+                      <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    {/* Error */}
+                    {item.error && (
+                      <div className="absolute inset-0 bg-red-900/60 flex items-center justify-center p-1">
+                        <span className="text-[9px] text-white text-center leading-tight">Upload failed</span>
+                      </div>
+                    )}
+                    {/* Remove button */}
+                    {!item.uploading && (
+                      <button
+                        type="button"
+                        onClick={() => removeEvidence(idx)}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {/* Add more slot */}
+                {evidenceFiles.length < MAX_EVIDENCE_FILES && (
+                  <button
+                    type="button"
+                    onClick={() => evidenceInputRef.current?.click()}
+                    className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-gabay-green/50 bg-muted/40 hover:bg-accent/50 flex flex-col items-center justify-center gap-1 transition cursor-pointer"
+                  >
+                    <ImagePlus className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground">Add</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Drop Zone (shown when no files yet) */}
+            {evidenceFiles.length === 0 && (
+              <button
+                type="button"
+                onClick={() => evidenceInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-border hover:border-gabay-green/50 rounded-2xl p-6 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition bg-muted/30 hover:bg-accent/30 cursor-pointer group"
+              >
+                <FileImage className="w-7 h-7 text-muted-foreground group-hover:text-gabay-green transition" />
+                <p className="text-xs font-semibold">Click to attach evidence photos</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Signed guardian consent, permits, etc. • JPG, PNG, WEBP • Max {MAX_FILE_SIZE_MB}MB each
+                </p>
+              </button>
+            )}
+
+            <input
+              ref={evidenceInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleEvidenceSelect}
+            />
+
+            {/* Evidence Notes */}
+            {evidenceFiles.length > 0 && (
+              <div className="mt-3">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground mb-1.5">
+                  <StickyNote className="w-3.5 h-3.5 text-gabay-green" />
+                  <span>Evidence Notes (Optional)</span>
+                </label>
+                <textarea
+                  value={evidenceNotes}
+                  onChange={(e) => setEvidenceNotes(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Signed guardian consent for enrollment despite incomplete documents. Approved by principal."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-card border border-border text-foreground placeholder-muted-foreground text-xs focus:ring-2 focus:ring-gabay-green focus:outline-none transition resize-none"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Info Notice */}
           <div className="p-3.5 rounded-2xl bg-accent text-accent-foreground border border-gabay-green/20 text-xs flex items-start gap-2">
             <Sparkles className="w-4 h-4 mt-0.5 shrink-0 text-gabay-green" />
             <p className="leading-relaxed text-[11px]">
-              Once created, this student will appear in the assigned counselor&apos;s caseload as an <strong>Incomplete Profile Stub</strong> requiring a mandatory face photo.
+              Once created, this student will appear in the assigned counselor&apos;s caseload as an{' '}
+              <strong>Incomplete Profile Stub</strong> requiring a mandatory face photo. Evidence
+              attachments will be visible to the counselor and LFO only.
             </p>
           </div>
 
@@ -301,7 +554,7 @@ export default function NewStudentStubPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Dispatching...</span>
+                  <span>{evidenceFiles.length > 0 ? 'Uploading & Dispatching...' : 'Dispatching...'}</span>
                 </>
               ) : (
                 <>

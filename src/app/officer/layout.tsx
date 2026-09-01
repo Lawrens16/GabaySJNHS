@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Clock, LogOut, Search } from 'lucide-react';
 import GabayLogo from '@/components/brand/GabayLogo';
 import ThemeToggle from '@/components/theme/ThemeToggle';
+import PrivacyDisclaimerModal from '@/components/officer/PrivacyDisclaimerModal';
+import StationWatermark from '@/components/officer/StationWatermark';
 
 export default function OfficerLayout({
   children,
@@ -15,9 +17,15 @@ export default function OfficerLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [officerName, setOfficerName] = useState('Enrollment Officer');
+  const [officerUsername, setOfficerUsername] = useState('eo_station');
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
 
   const isSearchActive = pathname.startsWith('/officer/search') || pathname.startsWith('/officer/student');
+
+  const handleAcknowledge = useCallback(() => {
+    setPrivacyAcknowledged(true);
+  }, []);
 
   useEffect(() => {
     async function loadSession() {
@@ -26,6 +34,7 @@ export default function OfficerLayout({
         const data = await res.json();
         if (data.authenticated) {
           setOfficerName(data.officer.name);
+          setOfficerUsername(data.officer.username || 'eo_station');
           setRemainingSeconds(data.remainingSeconds);
         } else {
           router.push('/officer/login?error=session_expired');
@@ -36,7 +45,6 @@ export default function OfficerLayout({
     }
     loadSession();
 
-    // Timer countdown tick
     const interval = setInterval(() => {
       setRemainingSeconds((prev) => {
         if (prev === null) return null;
@@ -53,6 +61,8 @@ export default function OfficerLayout({
   }, [router]);
 
   const handleLogout = async () => {
+    // Clear the session acknowledgement on explicit logout
+    sessionStorage.removeItem('gabay_eo_privacy_acknowledged');
     await fetch('/api/auth/officer-logout', { method: 'POST' });
     router.push('/officer/login');
   };
@@ -66,6 +76,15 @@ export default function OfficerLayout({
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors">
+      {/* Data Privacy Disclaimer — shown once per session on first load */}
+      <PrivacyDisclaimerModal
+        officerName={officerName}
+        onAcknowledge={handleAcknowledge}
+      />
+
+      {/* Dynamic Station Watermark — applied over all pages */}
+      <StationWatermark officerUsername={officerUsername} />
+
       {/* Top Navbar */}
       <header className="bg-card border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <div className="flex items-center gap-3">
@@ -86,9 +105,8 @@ export default function OfficerLayout({
           </Link>
         </div>
 
-        {/* Right Info: Officer badge, 10h timer, theme switch, logout */}
+        {/* Right Info */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Remaining 10-Hour Session Timer */}
           {remainingSeconds !== null && (
             <div
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono font-semibold ${
@@ -103,7 +121,6 @@ export default function OfficerLayout({
             </div>
           )}
 
-          {/* Officer Name */}
           <div className="hidden md:block text-right">
             <div className="text-xs font-bold text-foreground">{officerName}</div>
             <div className="text-[10px] text-gabay-green font-semibold">Active Station</div>
@@ -121,8 +138,12 @@ export default function OfficerLayout({
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      {/* Main Content Area — blurred until disclaimer acknowledged */}
+      <main
+        className={`flex-1 flex flex-col min-w-0 overflow-y-auto transition-all duration-300 ${
+          !privacyAcknowledged ? 'blur-sm pointer-events-none select-none' : ''
+        }`}
+      >
         {children}
       </main>
     </div>
